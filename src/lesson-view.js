@@ -5,6 +5,7 @@
   'use strict';
   const U = root.PE_UI;
   const E = root.PE_ENGINE;
+  const SX = root.PE_SIMPLE || { lines: (t) => '<p>' + t + '</p>', wordHelp: () => '' };
   const { S, esc, ICON, fmtB, pad, byId, trackOf } = U;
 
   const cache = {};
@@ -197,13 +198,28 @@
     const r = cv.getBoundingClientRect();
     const pos = layoutPx(sess.topo, r.width, r.height);
     applyNodePositions(sess.topo, pos);
-    const lines = (sess.topo.links || []).map(([a, b]) => {
-      if (!pos[a] || !pos[b]) return '';
-      return '<line x1="' + pos[a].x.toFixed(1) + '" y1="' + pos[a].y.toFixed(1) +
-        '" x2="' + pos[b].x.toFixed(1) + '" y2="' + pos[b].y.toFixed(1) + '" class="link"/>';
-    }).join('');
+    const links = (sess.topo.links || []).filter(([a, b]) => pos[a] && pos[b]);
+    // gentle curve so crossing links are easy to tell apart, plus a white casing
+    const pathFor = (a, b, k) => {
+      const A = pos[a], B = pos[b];
+      const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+      const dx = B.x - A.x, dy = B.y - A.y;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const bend = (k || 0) * Math.min(26, len * 0.12);
+      const cx = mx - (dy / len) * bend, cy = my + (dx / len) * bend;
+      return { d: 'M' + A.x.toFixed(1) + ',' + A.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + B.x.toFixed(1) + ',' + B.y.toFixed(1), cx, cy };
+    };
+    let casing = '', lines = '';
+    links.forEach(([a, b], i) => {
+      const { d } = pathFor(a, b, i % 2 ? 1 : -1);
+      casing += '<path d="' + d + '" class="link-case"/>';
+      lines += '<path d="' + d + '" class="link"/>';
+    });
     svg.setAttribute('viewBox', '0 0 ' + r.width + ' ' + r.height);
-    svg.innerHTML = lines + '<g id="cvroute"></g>';
+    svg.innerHTML =
+      '<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+      '<path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>' +
+      '<g class="links">' + casing + lines + '</g><g id="cvroute"></g><g id="cvhops"></g>';
     return { pos, w: r.width, h: r.height };
   }
 
@@ -215,7 +231,7 @@
   function openCache() { return {}; }
 
   /* ---------- one packet: hop, hop, hop along the real route ---------- */
-  function moveAlong(geo, route, color, segDur, dropped) {
+  function moveAlong(geo, route, color, segDur, dropped, label) {
     const layer = document.getElementById('cvpk');
     if (!layer || route.length < 2) return 0;
     if (!isFinite(segDur) || segDur <= 0) segDur = 200;
@@ -239,6 +255,14 @@
     dot.style.transform = 'translate(' + (pts[0].x - 7) + 'px,' + (pts[0].y - 7) + 'px)';
     layer.appendChild(dot);
 
+    const tag = document.createElement('div');
+    tag.className = 'pkttag';
+    tag.style.color = color;
+    tag.style.borderColor = color + '55';
+    tag.textContent = label || 'packet';
+    tag.style.transform = 'translate(' + (pts[0].x + 12) + 'px,' + (pts[0].y - 30) + 'px)';
+    layer.appendChild(tag);
+
     // dropped packets stop two-thirds of the way along, wherever that is
     const total = pts.length - 1;
     const stopAt = dropped ? Math.max(0.35, Math.min(0.66, (total - 0.34) / total)) : 1;
@@ -258,16 +282,23 @@
       const x = a.x + (b.x - a.x) * ease;
       const y = a.y + (b.y - a.y) * ease;
       dot.style.transform = 'translate(' + (x - 7) + 'px,' + (y - 7) + 'px)';
+      if (tag && tag.isConnected) tag.style.transform = 'translate(' + (x + 12) + 'px,' + (y - 30) + 'px)';
       if (dropped && overall >= stopAt - 0.001) {
         dot.classList.add('dead');
         dot.textContent = '✕';
+        if (tag) { tag.textContent = 'dropped'; tag.classList.add('dead'); setTimeout(() => tag.remove(), 900); }
         setTimeout(() => dot.remove(), 900);
         return;
       }
       if (now - segStart >= segDur) {
         seg += 1;
         segStart = now;
-        if (seg >= total * stopAt) { dot.classList.add('gone'); setTimeout(() => dot.remove(), 400); return; }
+        if (seg >= total * stopAt) {
+          dot.classList.add('gone');
+          if (tag) { tag.classList.add('gone'); setTimeout(() => tag.remove(), 400); }
+          setTimeout(() => dot.remove(), 400);
+          return;
+        }
       }
       requestAnimationFrame(frame);
     }
@@ -297,6 +328,31 @@
   }
 
   /* draw the route of the current step permanently, so a beginner can read the path */
+  function pathBetweenPts(A, B, k) {
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const bend = (k || 0) * Math.min(26, len * 0.12);
+    const cx = mx - (dy / len) * bend, cy = my + (dx / len) * bend;
+    return 'M' + A.x.toFixed(1) + ',' + A.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + B.x.toFixed(1) + ',' + B.y.toFixed(1);
+  }
+
+  /* numbered badges on the route of the current step: 1 → 2 → 3 */
+  function paintHops(pos, route, color) {
+    const g = document.getElementById('cvhops');
+    if (!g) return;
+    if (route.length < 2) { g.innerHTML = ''; return; }
+    g.innerHTML = route.map((id, i) => {
+      const p = pos[id];
+      if (!p) return '';
+      const last = i === route.length - 1;
+      return '<g class="hopnum" opacity="' + (last ? '.95' : '.8') + '">' +
+        '<circle cx="' + (p.x + 26).toFixed(1) + '" cy="' + (p.y - 26).toFixed(1) + '" r="9" fill="' + color + '" opacity=".92"/>' +
+        '<text x="' + (p.x + 26).toFixed(1) + '" y="' + (p.y - 22.5).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">' + (i + 1) + '</text>' +
+        '</g>';
+    }).join('');
+  }
+
   function paintRoutes(sess, stepIdx) {
     const g = document.getElementById('cvroute');
     if (!g) return;
@@ -305,17 +361,22 @@
     const r = cv.getBoundingClientRect();
     const pos = layoutPx(sess.topo, r.width, r.height);
     let out = '';
-    stepPackets(sess, stepIdx).forEach((p) => {
+    const pkts = stepPackets(sess, stepIdx);
+    const last = pkts[pkts.length - 1];
+    pkts.forEach((p) => {
       const route = routeFor(sess.topo, p.src, p.dst);
       if (route.length < 2) return;
+      const dim = last && p !== last;
       out += route.slice(0, -1).map((id, i) => {
         const a = pos[id], b = pos[route[i + 1]];
         if (!a || !b) return '';
-        return '<line x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) +
-          '" y2="' + b.y.toFixed(1) + '" class="link path" stroke="' + p.protoColor + '" stroke-opacity=".55"/>';
+        return '<path d="' + pathBetweenPts(a, b, i % 2 ? 1 : -1) + '" class="link path" stroke="' + p.protoColor +
+          '" stroke-opacity="' + (dim ? '.28' : '.62') + '" marker-end="url(#arrow)" style="color:' + p.protoColor + '"/>';
       }).join('');
     });
     g.innerHTML = out;
+    const g2 = document.getElementById('cvhops');
+    if (g2) g2.innerHTML = '';
   }
 
   /* when the canvas is wider than its box (phones), keep the action in frame */
@@ -348,16 +409,17 @@
     const pkts = stepPackets(sess, stepIdx);
     paintRoutes(sess, stepIdx);
     if (!pkts.length) { if (cb) cb(); return; }
-    const whole = 980 / S.speed;
+    const whole = 1250 / S.speed;
     let i = 0;
     function next() {
       if (i >= pkts.length) { if (cb) cb(); return; }
       const p = pkts[i];
       const route = routeFor(sess.topo, p.src, p.dst);
       const hops = Math.max(1, route.length - 1);
-      const segDur = Math.max(170 / S.speed, whole / hops);
+      const segDur = Math.max(260 / S.speed, whole / hops);
       if (route.length >= 2) {
-        moveAlong(geo, route, p.protoColor, segDur, p.dropped);
+        const tagTxt = (p.proto || 'IP') + (hops > 1 ? ' · ' + hops + ' hops' : '');
+        moveAlong(geo, route, p.protoColor, segDur, p.dropped, tagTxt);
         pulseNodes(route);
       }
       flashNodes(p);
@@ -468,11 +530,11 @@
     if (route.length < 2) {
       return '<span class="rc-lab">Route</span><span class="rc-hint">this packet leaves the drawn network</span>';
     }
-    const names = route.map((id) => {
+    const names = route.map((id, i) => {
       const d = sess.topo.devices.find((x) => x.id === id) || { label: id };
-      return '<b>' + esc(d.label) + '</b>';
+      return '<span class="rc-step"><em>' + (i + 1) + '</em><b>' + esc(d.label) + '</b></span>';
     });
-    return '<span class="rc-lab">Route</span><span class="rc-path">' + names.join('<i>→</i>') + '</span>' +
+    return '<span class="rc-lab">The packet goes</span><span class="rc-path">' + names.join('<i>›</i>') + '</span>' +
       '<span class="rc-hint">' + (route.length - 1) + ' hop' + (route.length === 2 ? '' : 's') +
       (p.dropped ? ' · this one is dropped' : '') + '</span>';
   }
@@ -484,13 +546,20 @@
     let h = '<div class="explain">';
     h += '<div class="eyebrow"><span>Step ' + (stepIdx + 1) + ' of ' + total + '</span><span>' + esc(lesson.steps[stepIdx].sub ? '' : '') + '</span></div>';
     h += '<h3>' + esc(st.title) + '</h3><div class="sub">' + esc(st.sub || '') + '</div>';
-    if (st.what) h += '<div class="qa"><div class="k" style="--kc:var(--accent)">What is happening</div><p>' + esc(st.what) + '</p></div>';
-    if (st.why) h += '<div class="qa why"><div class="k">Why it works this way</div><p>' + esc(st.why) + '</p></div>';
-    if (st.analogy) h += '<div class="qa analogy"><div class="k">Analogy</div><p>' + esc(st.analogy) + '</p></div>';
+    const easy = S.simple !== false;
+    if (st.what) h += '<div class="qa"><div class="k" style="--kc:var(--accent)">What is happening</div>' +
+      (easy ? SX.lines(st.what) : '<p>' + esc(st.what) + '</p>') + '</div>';
+    if (st.why) h += '<div class="qa why"><div class="k">Why it works this way</div>' +
+      (easy ? SX.lines(st.why) : '<p>' + esc(st.why) + '</p>') + '</div>';
+    if (st.analogy) h += '<div class="qa analogy"><div class="k">Think of it like this</div><p>' + esc(SX.plainSwap(st.analogy)) + '</p></div>';
+    if (easy) h += SX.wordHelp([st.what, st.why, st.sub, (st.terms || []).map((t) => t.t).join(' ')].join(' '));
     if (st.card) h += dataCard(st.card);
     if (st.terms && st.terms.length) {
       h += '<div class="terms"><div class="k" style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700">Terms</div>' +
-        st.terms.map((t) => '<div class="term"><b>' + esc(t.t) + '</b> — <span>' + esc(t.d) + '</span></div>').join('') + '</div>';
+        st.terms.map((t) => {
+          const easy = (root.PE_SIMPLE && S.simple !== false) ? SX.plainSwap(t.d) : t.d;
+          return '<div class="term"><b>' + esc(t.t) + '</b> — <span>' + esc(easy) + '</span></div>';
+        }).join('') + '</div>';
     }
     if (lesson.refs && lesson.refs.length) {
       h += '<div class="terms"><div class="k" style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700">Further reading</div>' +
@@ -540,7 +609,7 @@
         h += '<button class="' + cls + '" data-act="quiz" data-q="' + qi + '" data-o="' + oi + '"' + (picked !== undefined ? ' disabled' : '') + '>' +
           '<span class="b">' + String.fromCharCode(65 + oi) + '</span><span>' + esc(o) + '</span></button>';
       });
-      if (picked !== undefined) h += '<div class="why">' + esc(q.why) + '</div>';
+      if (picked !== undefined) h += '<div class="why">' + esc(S.simple !== false ? SX.plainSwap(q.why) : q.why) + '</div>';
       h += '<div style="height:12px"></div>';
     });
     h += '</div></div>';
@@ -648,6 +717,15 @@
     return h;
   }
 
+  function redraw() {
+    const lesson = byId[S.lessonId];
+    if (!lesson || S.view !== 'lesson') return;
+    const sess = session(lesson);
+    const stepIdx = Math.min(S.step, lesson.steps.length - 1);
+    drawLinks(sess);
+    paintRoutes(sess, stepIdx);
+  }
+
   function afterRender() {
     const lesson = byId[S.lessonId];
     const sess = session(lesson);
@@ -698,13 +776,15 @@
     fitHex();
   }
 
-  root.PE_LESSON = {
+  root.PE_LESSON = { redraw,
     render, afterRender, refreshInspector, session, LS,
     animate(sess, stepIdx) { animateStep(sess, stepIdx); },
     fitHex,
     onResize() {
+      if (!document.getElementById('cv')) return;
+      redraw();
       const sess = session(byId[S.lessonId]);
-      if (document.getElementById('cv')) drawLinks(sess);
+      centerCanvas(sess, Math.min(S.step, byId[S.lessonId].steps.length - 1));
     },
   };
 })(typeof window !== 'undefined' ? window : globalThis);

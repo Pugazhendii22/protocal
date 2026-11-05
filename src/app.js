@@ -249,6 +249,12 @@
       case 'exam-again':
         root.PE_EXTRA.examReset();
         break;
+      case 'simple':
+        S.simple = !S.simple;
+        U.save();
+        U.toast(S.simple ? 'Easy English on — short lines and word help' : 'Showing the original wording');
+        render(true);
+        break;
       case 'palette':
         ev.preventDefault();
         root.PE_EXTRA.paletteOpen('');

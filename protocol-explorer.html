@@ -326,10 +326,10 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .node:hover{border-color:var(--accent);box-shadow:0 10px 24px -14px rgba(79,70,229,.9);transform:translate(-50%,-50%) translateY(-2px)}
 .node.focus{border-color:#c7cbfb;background:#fff}
 .node.focus .bx{background:#e3e6fd;color:#4338ca}
-.node.dim{background:#fbfcfe;border-color:#e9eef6;box-shadow:none}
-.node.dim .bx{background:#f4f6fa;color:#aab6c8}
-.node.dim .nm{color:#8c99ad;font-weight:600}
-.node.dim .ip{color:#b6c1d1}
+.node.dim{background:#fcfdff;border-color:#e6ebf3;box-shadow:none;opacity:.82}
+.node.dim .bx{background:#e9eef6;color:#6f8099}
+.node.dim .nm{color:#6b7b93;font-weight:600}
+.node.dim .ip{color:#93a1b6}
 .node.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,70,229,.16)}
 .node.through .bx{background:#dbeafe;color:#1d4ed8}
 .node.arrive{border-color:var(--accent2);box-shadow:0 0 0 4px rgba(13,148,136,.18)}
@@ -360,9 +360,11 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
   border-bottom:1px solid var(--line);background:var(--panel2);font-size:12px;color:var(--text2)
 }
 .rc-lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:750}
-.rc-path{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.rc-path{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
 .rc-path b{font-weight:650;color:var(--text)}
-.rc-path i{color:var(--dim);font-style:normal}
+.rc-path i{color:var(--dim);font-style:normal;font-weight:700}
+.rc-step{display:inline-flex;align-items:center;gap:5px}
+.rc-step em{font-style:normal;font-family:var(--mono);font-size:9.5px;font-weight:700;color:#fff;background:var(--accent);border-radius:50%;width:15px;height:15px;display:inline-grid;place-items:center}
 .rc-hint{color:var(--muted);font-size:11.5px;margin-left:auto}
 
 /* ============================================================
@@ -504,6 +506,39 @@ table.grid td.hi{color:var(--text);font-weight:600}
 .hoprow .h-ip{font-family:var(--mono);font-size:11px;color:var(--muted)}
 .hoprow .h-ms{font-family:var(--mono);font-size:11px;color:var(--ok);text-align:right}
 .hoprow.dim{opacity:.45}
+
+
+/* ============================================================
+   diagram: curved links, hop numbers, packet label
+   ============================================================ */
+.canvas .link-case{fill:none;stroke:#fff;stroke-width:7;stroke-linecap:round;opacity:.9}
+.canvas .link{fill:none;stroke:#c3d0e2;stroke-width:2.4;stroke-linecap:round}
+.canvas .link.path{stroke-width:3.6;stroke-linecap:round;stroke-dasharray:9 7;animation:flow 1s linear infinite;fill:none}
+.canvas .link.path + .link.path{animation-delay:.1s}
+.hopnum text{font-family:var(--sans);pointer-events:none}
+.pktdot{position:absolute;width:15px;height:15px;border-radius:50%;left:0;top:0;z-index:9;pointer-events:none}
+.pktdot.dead{background:none!important;box-shadow:none!important;color:var(--bad);font-size:18px;font-weight:800;width:auto;height:auto;line-height:1}
+.pktdot.gone{opacity:0;transition:opacity .35s}
+.pkttag{
+  position:absolute;left:0;top:0;z-index:10;pointer-events:none;
+  font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.02em;
+  background:#fff;border:1px solid var(--line2);border-radius:6px;padding:1px 5px;
+  box-shadow:0 2px 6px rgba(16,24,40,.12);white-space:nowrap
+}
+.pkttag.dead{color:var(--bad)!important;border-color:#fbc4c4!important;background:#fef2f2}
+.pkttag.gone{opacity:0;transition:opacity .3s}
+
+/* ============================================================
+   easy English: short lines + word help
+   ============================================================ */
+.plainlist{list-style:none;margin:2px 0 0;padding:0}
+.plainlist li{position:relative;padding-left:16px;margin:5px 0;font-size:15px;line-height:1.55;color:var(--text2)}
+.plainlist li:before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--accent);opacity:.55}
+.qa.why .plainlist li:before{background:var(--accent2)}
+.wordhelp{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:16px;padding:11px 13px;border-radius:11px;background:#f7f9fe;border:1px dashed #d7deea}
+.wh-lab{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:750;margin-right:2px}
+.wh{font-size:12px;color:var(--text2);background:#fff;border:1px solid var(--line);border-radius:99px;padding:3px 9px;line-height:1.4}
+.wh b{color:var(--accent);font-weight:700;margin-right:3px}
 
 /* ============================================================
    exam / timeline / palette / toast
@@ -1522,7 +1557,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'basics',
       n: 1,
-      title: 'Foundations',
+      title: 'The very basics',
       tag: 'Start here',
       blurb: 'What a packet is, and the three addresses on every one of them. No prior knowledge assumed.',
       color: '#5b8def',
@@ -1538,7 +1573,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'security',
       n: 3,
-      title: 'Security',
+      title: 'Keeping it safe',
       tag: 'The padlock, properly',
       blurb: 'TLS, certificates and SSH — what encryption and authentication actually do for you.',
       color: '#c084fc',
@@ -1554,7 +1589,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'advanced',
       n: 5,
-      title: 'Going deeper',
+      title: 'How it goes wrong',
       tag: 'For the curious',
       blurb: 'UDP and QUIC, ICMP diagnostics, TCP recovery and congestion, BGP, and a full diagnostic walkthrough.',
       color: '#f87171',
@@ -1562,7 +1597,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'modern',
       n: 6,
-      title: 'Advanced & modern',
+      title: 'Modern internet',
       tag: 'Beyond the textbook basics',
       blurb: 'Performance physics, IPv6, anycast and CDNs, middleboxes and CGNAT, and how large networks observe and defend themselves. Written against the standard references, each lesson with further reading.',
       color: '#38bdf8',
@@ -1570,7 +1605,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'deep',
       n: 7,
-      title: 'Protocol deep dives',
+      title: 'Inside the protocols',
       tag: 'Read the specs',
       blurb: 'TLS 1.3 internals, QUIC and HTTP/3, HTTP/2 multiplexing, DNSSEC and DNS privacy, Wi-Fi association and the WPA2 handshake, and the time problem nobody debugs.',
       color: '#a78bfa',
@@ -1578,7 +1613,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     {
       id: 'ops',
       n: 8,
-      title: 'Cloud, containers & ops',
+      title: 'Cloud and operations',
       tag: 'Where it all runs now',
       blurb: 'Kubernetes pod networking and ClusterIPs, cloud VPCs and two kinds of firewall, Linux netfilter and conntrack, service mesh mTLS, QoS, and real-time media with ICE/TURN.',
       color: '#fb923c',
@@ -5940,6 +5975,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     lib: null,
     search: '',
     menu: false,
+    simple: true,
   };
 
   function load() {
@@ -5950,11 +5986,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
       if (j.done) S.done = j.done;
       if (j.quiz) S.quiz = j.quiz;
       if (j.lessonId && byId[j.lessonId]) S.lessonId = j.lessonId;
+      if (j.simple === false) S.simple = false;
     } catch (e) { /* ignore */ }
   }
   function save() {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ done: S.done, quiz: S.quiz, lessonId: S.lessonId }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ done: S.done, quiz: S.quiz, lessonId: S.lessonId, simple: S.simple }));
     } catch (e) { /* ignore */ }
   }
 
@@ -6108,7 +6145,9 @@ table.grid td.hi{color:var(--text);font-weight:600}
       const t = trackOf[l.track];
       crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
         '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
-      right = '<div class="seg" style="margin-right:2px">' +
+      right = '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' hide-sm" data-act="simple" title="Short, easy sentences and word help">' +
+          (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
+        '<div class="seg" style="margin-right:2px">' +
           '<button data-act="prev" title="Previous lesson">‹</button>' +
           '<button data-act="nextLesson" title="Next lesson">›</button></div>' +
         '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
@@ -6145,12 +6184,321 @@ table.grid td.hi{color:var(--text);font-weight:600}
 </script>
 <script>
 /* ============================================================
+   simple.js — plain-English layer
+   Turns lesson prose into short, easy lines and decodes jargon.
+   Used by the lesson view; toggled with the "Easy English" button.
+   ============================================================ */
+(function (root) {
+  'use strict';
+
+  /* --- safe word swaps: same meaning, much easier words --- */
+  const SWAPS = [
+    [/\butilise[sd]?\b/gi, 'use'], [/\butilize[sd]?\b/gi, 'use'], [/\butilisation\b/gi, 'use'],
+    [/\bapproximately\b/gi, 'about'], [/\binitiate[sd]?\b/gi, 'start'], [/\binitiates\b/gi, 'starts'],
+    [/\bterminate[sd]?\b/gi, 'end'], [/\btermination\b/gi, 'ending'],
+    [/\bsubsequent(ly)?\b/gi, 'next'], [/\bprior to\b/gi, 'before'], [/\bin order to\b/gi, 'to'],
+    [/\bcommence[sd]?\b/gi, 'start'], [/\bendeavour\b/gi, 'try'], [/\battempt to\b/gi, 'try to'],
+    [/\bnumerous\b/gi, 'many'], [/\badditional\b/gi, 'extra'], [/\bsufficient\b/gi, 'enough'],
+    [/\bobtain[sd]?\b/gi, 'get'], [/\btransmit[s]?ted?\b/gi, 'send'], [/\btransmit[s]?\b/gi, 'send'],
+    [/\btransmission\b/gi, 'sending'], [/\breceive[sd]?\b/gi, 'get'], [/\bregarding\b/gi, 'about'],
+    [/\bhowever\b/gi, 'but'], [/\btherefore\b/gi, 'so'], [/\bthus\b/gi, 'so'], [/\bhence\b/gi, 'so'],
+    [/\bfurthermore\b/gi, 'also'], [/\bmoreover\b/gi, 'also'], [/\bnevertheless\b/gi, 'still'],
+    [/\bprimarily\b/gi, 'mostly'], [/\btypically\b/gi, 'usually'], [/\bfrequently\b/gi, 'often'],
+    [/\bimmediately\b/gi, 'right away'], [/\bsimultaneously\b/gi, 'at the same time'],
+    [/\bdetermine[sd]?\b/gi, 'decide'], [/\bidentify\b/gi, 'find'], [/\bidentifies\b/gi, 'finds'],
+    [/\bguarantee[sd]?\b/gi, 'promise'], [/\bnegotiate[sd]?\b/gi, 'agree on'], [/\bnegotiation\b/gi, 'agreement'],
+    [/\bencapsulate[sd]?\b/gi, 'wrap'], [/\bencapsulates\b/gi, 'wraps'], [/\bencapsulation\b/gi, 'wrapping'],
+    [/\bpropagate[sd]?\b/gi, 'spread'], [/\bpropagation\b/gi, 'spreading'],
+    [/\bverification\b/gi, 'checking'], [/\bvalidat(e|es|ion)\b/gi, 'check'],
+    [/\bunauthorised\b/gi, 'not allowed'], [/\bunauthorized\b/gi, 'not allowed'],
+    [/\bprivilege[sd]?\b/gi, 'rights'], [/\bexecute[sd]?\b/gi, 'run'],
+    [/\bgenerate[sd]?\b/gi, 'make'], [/\bgeneration\b/gi, 'making'], [/\bconstruct(s|ed)?\b/gi, 'build'],
+    [/\bmodify\b/gi, 'change'], [/\bmodifies\b/gi, 'changes'], [/\bmodification\b/gi, 'change'],
+    [/\bcontain(s)?\b/gi, 'have'], [/\bincludes?\b/gi, 'has'], [/\bcomprises\b/gi, 'is made of'],
+    [/\bentire\b/gi, 'whole'], [/\bremainder\b/gi, 'rest'], [/\bcommonly\b/gi, 'usually'],
+    [/\bessentially\b/gi, 'basically'], [/\bultimately\b/gi, 'in the end'],
+    [/\boptimi[sz]ed?\b/gi, 'made faster'], [/\befficient\b/gi, 'quick'], [/\befficiency\b/gi, 'speed'],
+    [/\bterminology\b/gi, 'words'], [/\bimplement(s|ed|ation)?\b/gi, 'build'],
+    [/\bconsequently\b/gi, 'so'], [/\bpursuant\b/gi, 'following'],
+    [/\bconcerning\b/gi, 'about'], [/\bprovided that\b/gi, 'as long as'],
+    [/\bwhether or not\b/gi, 'if'], [/\bin the event that\b/gi, 'if'],
+    [/\bat this point in time\b/gi, 'now'], [/\bin the near future\b/gi, 'soon'],
+    [/\bprior\b/gi, 'earlier'], [/\bsubsequently\b/gi, 'later'],
+  ];
+
+  /* --- jargon decoder: term → plain meaning (shown as chips) --- */
+  const DICT = [
+    // basics
+    ['packet', 'a small piece of a message, with an address on it'],
+    ['frame', 'the packet as it travels on the wire, with link addresses added'],
+    ['header', 'the label at the front of a packet that says where it is going'],
+    ['payload', "the actual data you are sending — everything after the label"],
+    ['checksum', 'a maths result used to check the data arrived without damage'],
+    ['byte', '8 bits; one character of text is usually one byte'],
+    ['bit', 'the smallest unit: a 0 or a 1'],
+    ['bandwidth', 'how much data can flow per second'],
+    ['latency', 'how long one message takes to go and come back'],
+    ['jitter', 'how much the delay keeps changing'],
+    ['protocol', 'an agreed set of rules two machines follow to talk'],
+    ['port', 'a numbered door on a machine, so replies reach the right app'],
+    ['socket', 'one machine, one port, one conversation'],
+    ['localhost', 'the machine itself (address 127.0.0.1)'],
+    ['loopback', 'address 127.0.0.1 — the machine talking to itself'],
+    ['ttl', 'a count that drops by one at every router, so packets cannot loop forever'],
+    ['mtu', 'the biggest packet a link can carry in one go'],
+    ['fragment', 'a packet cut into smaller pieces because the link could not carry it whole'],
+    ['subnet', 'a group of addresses inside one network'],
+    ['subnet mask', 'the number that tells which part of an address is the network and which is the machine'],
+    ['gateway', 'the door out of your network — usually your router'],
+    ['router', 'the device that moves packets from one network to another'],
+    ['switch', 'the device that moves frames inside one network'],
+    ['mac address', "a device's permanent hardware name, like 00:1a:2b:3c:4d:5e"],
+    ['ip address', 'the address a device uses so packets can find it'],
+    ['dhcp', 'the service that hands out IP addresses automatically'],
+    ['dns', 'the internet phone book: name → IP address'],
+    ['resolver', 'the helper server that looks up names for you'],
+    ['recursive', 'it goes and asks others until it gets the full answer'],
+    ['authoritative', 'the server that actually owns the answer for that name'],
+    ['ttl expiry', 'the packet lived too long, so a router threw it away'],
+    ['cache', 'a small store of recent answers so you do not have to ask again'],
+    ['arp', 'on a local network, the question "who has this IP?" answered with a MAC address'],
+    ['broadcast', 'sending to every device on the local network at once'],
+    ['icmp', 'the small message system used for ping and error reports'],
+    // transport
+    ['tcp', 'the careful transport: it numbers, orders and re-sends data'],
+    ['udp', 'the quick transport: it just sends and does not look back'],
+    ['handshake', 'the hello exchange before two sides start talking'],
+    ['syn', '"I want to start a connection"'],
+    ['ack', '"I got what you sent"'],
+    ['fin', '"I am finished sending"'],
+    ['sequence number', 'a counter on every byte so the receiver can put things in order'],
+    ['window', 'how much data the receiver can take before it must reply'],
+    ['retransmission', 'sending the same data again because no reply came'],
+    ['timeout', 'giving up and waiting no more'],
+    ['congestion', 'too much traffic in the pipes, so things slow down'],
+    ['flow control', 'the receiver telling the sender to slow down'],
+    ['congestion window', 'the sender\'s own guess about how much the network can take'],
+    ['slow start', 'beginning carefully and speeding up as replies come back'],
+    ['triple duplicate ack', 'three "got it, but I am missing one" replies — the signal to re-send'],
+    ['buffer', 'a holding area for data that has arrived but is not used yet'],
+    ['bufferbloat', 'big buffers making everything feel slow and laggy'],
+    ['keep-alive', 'a small periodic message so the connection is not dropped'],
+    ['ephemeral port', 'a temporary high-numbered port picked for one connection'],
+    // naming and web
+    ['http', 'the language browsers and websites use to ask and answer'],
+    ['request', 'what the browser asks for'],
+    ['response', 'what the server sends back'],
+    ['status code', 'a number saying what happened: 200 ok, 404 not found, 500 server error'],
+    ['header field', 'one line of extra information in a request or response'],
+    ['cookie', 'a small note a site asks the browser to keep and send back'],
+    ['tls', 'the encryption layer that makes https private'],
+    ['certificate', 'a signed digital id card that proves a site is who it says'],
+    ['certificate authority', 'the trusted company that signs those id cards'],
+    ['chain of trust', 'certificate, signed by a middle authority, signed by a root you already trust'],
+    ['cipher suite', 'the exact set of maths rules used for one encrypted connection'],
+    ['key exchange', 'how two sides agree on a secret key they never send'],
+    ['forward secrecy', 'old recorded traffic stays safe even if the key leaks later'],
+    ['sni', 'the name of the site, sent in the open at the start of a TLS connection'],
+    ['alpn', 'the part of the hello where both sides agree on the protocol version'],
+    ['http/2', 'a faster version of http that sends many requests at once on one connection'],
+    ['http/3', 'http running on quic over udp'],
+    ['quic', 'a new transport that is reliable but built on udp, and encrypted by default'],
+    ['multiplexing', 'many conversations sharing one connection at the same time'],
+    ['head-of-line blocking', 'one lost piece holding up everything behind it'],
+    ['dnssec', 'digital signatures on DNS answers, so they cannot be faked'],
+    ['doh', 'DNS inside https, so nobody can read your lookups'],
+    ['anycast', 'many servers sharing one IP address; you reach the nearest'],
+    ['cdn', 'a network of servers close to users that keeps copies of content'],
+    // security
+    ['encryption', 'scrambling data so only the right person can read it'],
+    ['decryption', 'unscrambling it again'],
+    ['symmetric', 'both sides use the same key'],
+    ['asymmetric', 'two keys: one public, one private'],
+    ['public key', 'a key you can share with anyone'],
+    ['private key', 'a key you keep secret'],
+    ['signature', 'a maths proof that this data came from the holder of a key'],
+    ['hash', 'a fixed-size fingerprint of some data'],
+    ['ssh', 'an encrypted way to log in to another machine'],
+    ['firewall', 'a filter that allows or blocks traffic by rule'],
+    ['nat', 'network address translation: many devices share one public IP'],
+    ['pat', 'port address translation: the same, using port numbers to tell connections apart'],
+    ['cgnat', 'carrier-grade NAT: the ISP puts many customers behind one address'],
+    ['mtls', 'both sides show certificates, so both prove who they are'],
+    ['zero trust', 'do not trust anything just because it is inside the network'],
+    ['load balancer', 'a device that shares incoming traffic across several servers'],
+    // routing
+    ['bgp', 'the protocol ISPs use to tell each other which addresses they can reach'],
+    ['as number', 'a number that identifies one network on the internet'],
+    ['ospf', 'a routing protocol used inside one organisation'],
+    ['hop', 'one step from one router to the next'],
+    ['routing table', 'the list of "to reach X, send it to Y"'],
+    ['default route', 'where to send anything you have no better answer for'],
+    ['longest prefix match', 'the most specific route wins'],
+    ['next hop', 'the very next router on the way'],
+    ['convergence', 'everyone finishing updating their routes after a change'],
+    ['ipv6', 'the newer IP with much longer addresses (128 bits)'],
+    ['slaac', 'a device making up its own IPv6 address from the router announcement'],
+    ['ndp', 'IPv6\'s version of ARP plus router discovery'],
+    ['ra', 'router advertisement: the message that tells devices the network details'],
+    ['dual stack', 'a machine running IPv4 and IPv6 at the same time'],
+    // modern / ops
+    ['kubernetes', 'a system that runs many containers and connects them'],
+    ['pod', 'the smallest unit in kubernetes: usually one container with its own IP'],
+    ['clusterip', 'a fake internal IP that forwards to real pods'],
+    ['sidecar', 'a helper container that sits beside your app and handles its traffic'],
+    ['service mesh', 'a layer of proxies that adds encryption and control between services'],
+    ['veth', 'a virtual cable inside the kernel connecting two places'],
+    ['overlay', 'a virtual network built on top of a real one'],
+    ['vpc', 'your own private slice of a cloud network'],
+    ['security group', 'a stateful firewall attached to one machine'],
+    ['nacl', 'a stateless firewall attached to a whole subnet'],
+    ['conntrack', 'the kernel remembering which connections are open'],
+    ['dnat', 'rewriting the destination address of a packet'],
+    ['snat', 'rewriting the source address of a packet'],
+    ['qdisc', 'the queue rules deciding which packet leaves next'],
+    ['dscp', 'a 6-bit label in the packet saying how important it is'],
+    ['rtp', 'the format used to carry live audio and video'],
+    ['ice', 'the process of finding a path that works between two devices'],
+    ['stun', 'a server that tells you what address the outside world sees'],
+    ['turn', 'a relay server used when two devices cannot reach each other'],
+    ['wi-fi', 'the wireless link between your device and the access point'],
+    ['ssid', 'the name of a wi-fi network'],
+    ['wpa2', 'the encryption standard used on most wi-fi'],
+    ['association', 'joining a wi-fi network'],
+    ['ebpf', 'a way to run small programs inside the kernel to see or filter traffic'],
+    ['slo', 'a target for how reliable a service should be'],
+    ['error budget', 'how much unreliability you are allowed before you must stop changing things'],
+    ['observability', 'being able to answer "why is it slow?" from logs, metrics and traces'],
+    ['runbook', 'the step-by-step notes for handling a known problem'],
+  ];
+
+  const DICT_MAP = {};
+  DICT.forEach((d) => { DICT_MAP[d[0]] = d[1]; });
+
+  /* --- text helpers --- */
+  function plainSwap(t) {
+    let s = t;
+    SWAPS.forEach(([re, to]) => {
+      s = s.replace(re, (m) => {
+        if (m[0] === m[0].toUpperCase() && m.slice(1) === m.slice(1).toLowerCase()) {
+          return to[0].toUpperCase() + to.slice(1);
+        }
+        return to;
+      });
+    });
+    return s;
+  }
+
+  const ABBR = /\b(e\.g|i\.e|etc|vs|approx|no)\.$/i;
+
+  /* split prose into short sentences; long ones get broken at , and / , so / because */
+  function toLines(text) {
+    let t = plainSwap(String(text || '').trim());
+    if (!t) return [];
+    // protect decimals and dotted names
+    const guards = [];
+    t = t.replace(/\b\d+\.\d+\b|\b[a-z0-9-]+(\.[a-z0-9-]+)+\b/gi, (m) => {
+      guards.push(m);
+      return '\u0001' + (guards.length - 1) + '\u0001';
+    });
+    const MAXW = 13;
+    const words = (x) => x.trim().split(/\s+/).filter(Boolean).length;
+    const splitOnce = (b) => {
+      if (words(b) <= MAXW) return [b];
+      // break at a colon or semicolon first — that is a natural pause
+      let m = b.match(/^(.{8,140}?)[:;]\s+(\S.*)$/);
+      if (m && words(m[2]) >= 3) return [m[1].trim(), m[2].trim()];
+      // then at a linking word, but never inside brackets
+      const safe = (x) => (x.split('(').length === x.split(')').length);
+      m = b.match(/^(.{12,}?)\s+(?:—|but|so|because|which means|and then|while)\s+(\S.*)$/i);
+      if (m && safe(m[1]) && words(m[2]) >= 3) return [m[1].trim(), m[2].trim()];
+      m = b.match(/^(\S.{10,}?)\s+and\s+(\S.*)$/i);
+      if (m && safe(m[1]) && words(m[2]) >= 4) return [m[1].trim(), 'and ' + m[2].trim()];
+      return [b];
+    };
+
+    let parts = t.split(/(?<=[.!?])\s+/).map((x) => x.trim()).filter(Boolean);
+    const out = [];
+    parts.forEach((p) => {
+      let bits = [p];
+      for (let k = 0; k < 4; k++) {
+        const next = [];
+        let changed = false;
+        bits.forEach((b) => {
+          const r = splitOnce(b);
+          if (r.length > 1) changed = true;
+          r.forEach((x) => next.push(x));
+        });
+        bits = next;
+        if (!changed) break;
+      }
+      bits.forEach((b, bi) => {
+        if (!b) return;
+        const isCont = bi > 0 && !/^[A-Z0-9]/.test(b) && !/^and /i.test(b);
+        out.push(isCont ? '→ ' + b : b);
+      });
+    });
+
+    const merged = [];
+    out.forEach((l) => {
+      if (words(l) < 4 && merged.length && !/^[A-Z]/.test(l)) merged[merged.length - 1] += ' ' + l;
+      else merged.push(l);
+    });
+    return merged.map((l) => l.replace(/[,;:]\s*$/, '')
+      .replace(/\u0001(\d+)\u0001/g, (m, i) => guards[+i])
+      .replace(/\s+/g, ' ')
+      .trim());
+  }
+
+  /* which jargon words appear in this text (for the "word help" chips) */
+  function jargonIn(text) {
+    const low = String(text || '').toLowerCase();
+    const hits = [];
+    DICT.forEach(([term, meaning]) => {
+      if (low.indexOf(term) >= 0) hits.push({ term, meaning });
+    });
+    // prefer longer terms, keep at most 5
+    hits.sort((a, b) => b.term.length - a.term.length);
+    const seen = new Set();
+    return hits.filter((h) => {
+      if (seen.has(h.term)) return false;
+      seen.add(h.term);
+      return true;
+    }).slice(0, 5);
+  }
+
+  /* render prose as short lines */
+  function lines(text) {
+    const ls = toLines(text);
+    if (!ls.length) return '';
+    if (ls.length === 1) return '<p>' + esc(ls[0]) + '</p>';
+    return '<ul class="plainlist">' + ls.map((l) => '<li>' + esc(l) + '</li>').join('') + '</ul>';
+  }
+
+  const esc = (s) => String(s == null ? '' : s)
+    .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  function wordHelp(text) {
+    const hits = jargonIn(text);
+    if (!hits.length) return '';
+    return '<div class="wordhelp"><span class="wh-lab">Word help</span>' +
+      hits.map((h) => '<span class="wh"><b>' + esc(h.term) + '</b> ' + esc(h.meaning) + '</span>').join('') +
+      '</div>';
+  }
+
+  root.PE_SIMPLE = { lines, toLines, jargonIn, wordHelp, plainSwap, DICT };
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
    lesson-view.js — guided lesson: explainer, canvas, pcap, inspector
    ============================================================ */
 (function (root) {
   'use strict';
   const U = root.PE_UI;
   const E = root.PE_ENGINE;
+  const SX = root.PE_SIMPLE || { lines: (t) => '<p>' + t + '</p>', wordHelp: () => '' };
   const { S, esc, ICON, fmtB, pad, byId, trackOf } = U;
 
   const cache = {};
@@ -6343,13 +6691,28 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const r = cv.getBoundingClientRect();
     const pos = layoutPx(sess.topo, r.width, r.height);
     applyNodePositions(sess.topo, pos);
-    const lines = (sess.topo.links || []).map(([a, b]) => {
-      if (!pos[a] || !pos[b]) return '';
-      return '<line x1="' + pos[a].x.toFixed(1) + '" y1="' + pos[a].y.toFixed(1) +
-        '" x2="' + pos[b].x.toFixed(1) + '" y2="' + pos[b].y.toFixed(1) + '" class="link"/>';
-    }).join('');
+    const links = (sess.topo.links || []).filter(([a, b]) => pos[a] && pos[b]);
+    // gentle curve so crossing links are easy to tell apart, plus a white casing
+    const pathFor = (a, b, k) => {
+      const A = pos[a], B = pos[b];
+      const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+      const dx = B.x - A.x, dy = B.y - A.y;
+      const len = Math.max(1, Math.hypot(dx, dy));
+      const bend = (k || 0) * Math.min(26, len * 0.12);
+      const cx = mx - (dy / len) * bend, cy = my + (dx / len) * bend;
+      return { d: 'M' + A.x.toFixed(1) + ',' + A.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + B.x.toFixed(1) + ',' + B.y.toFixed(1), cx, cy };
+    };
+    let casing = '', lines = '';
+    links.forEach(([a, b], i) => {
+      const { d } = pathFor(a, b, i % 2 ? 1 : -1);
+      casing += '<path d="' + d + '" class="link-case"/>';
+      lines += '<path d="' + d + '" class="link"/>';
+    });
     svg.setAttribute('viewBox', '0 0 ' + r.width + ' ' + r.height);
-    svg.innerHTML = lines + '<g id="cvroute"></g>';
+    svg.innerHTML =
+      '<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">' +
+      '<path d="M0 0 L10 5 L0 10 z" fill="currentColor"/></marker></defs>' +
+      '<g class="links">' + casing + lines + '</g><g id="cvroute"></g><g id="cvhops"></g>';
     return { pos, w: r.width, h: r.height };
   }
 
@@ -6361,7 +6724,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
   function openCache() { return {}; }
 
   /* ---------- one packet: hop, hop, hop along the real route ---------- */
-  function moveAlong(geo, route, color, segDur, dropped) {
+  function moveAlong(geo, route, color, segDur, dropped, label) {
     const layer = document.getElementById('cvpk');
     if (!layer || route.length < 2) return 0;
     if (!isFinite(segDur) || segDur <= 0) segDur = 200;
@@ -6385,6 +6748,14 @@ table.grid td.hi{color:var(--text);font-weight:600}
     dot.style.transform = 'translate(' + (pts[0].x - 7) + 'px,' + (pts[0].y - 7) + 'px)';
     layer.appendChild(dot);
 
+    const tag = document.createElement('div');
+    tag.className = 'pkttag';
+    tag.style.color = color;
+    tag.style.borderColor = color + '55';
+    tag.textContent = label || 'packet';
+    tag.style.transform = 'translate(' + (pts[0].x + 12) + 'px,' + (pts[0].y - 30) + 'px)';
+    layer.appendChild(tag);
+
     // dropped packets stop two-thirds of the way along, wherever that is
     const total = pts.length - 1;
     const stopAt = dropped ? Math.max(0.35, Math.min(0.66, (total - 0.34) / total)) : 1;
@@ -6404,16 +6775,23 @@ table.grid td.hi{color:var(--text);font-weight:600}
       const x = a.x + (b.x - a.x) * ease;
       const y = a.y + (b.y - a.y) * ease;
       dot.style.transform = 'translate(' + (x - 7) + 'px,' + (y - 7) + 'px)';
+      if (tag && tag.isConnected) tag.style.transform = 'translate(' + (x + 12) + 'px,' + (y - 30) + 'px)';
       if (dropped && overall >= stopAt - 0.001) {
         dot.classList.add('dead');
         dot.textContent = '✕';
+        if (tag) { tag.textContent = 'dropped'; tag.classList.add('dead'); setTimeout(() => tag.remove(), 900); }
         setTimeout(() => dot.remove(), 900);
         return;
       }
       if (now - segStart >= segDur) {
         seg += 1;
         segStart = now;
-        if (seg >= total * stopAt) { dot.classList.add('gone'); setTimeout(() => dot.remove(), 400); return; }
+        if (seg >= total * stopAt) {
+          dot.classList.add('gone');
+          if (tag) { tag.classList.add('gone'); setTimeout(() => tag.remove(), 400); }
+          setTimeout(() => dot.remove(), 400);
+          return;
+        }
       }
       requestAnimationFrame(frame);
     }
@@ -6443,6 +6821,31 @@ table.grid td.hi{color:var(--text);font-weight:600}
   }
 
   /* draw the route of the current step permanently, so a beginner can read the path */
+  function pathBetweenPts(A, B, k) {
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const dx = B.x - A.x, dy = B.y - A.y;
+    const len = Math.max(1, Math.hypot(dx, dy));
+    const bend = (k || 0) * Math.min(26, len * 0.12);
+    const cx = mx - (dy / len) * bend, cy = my + (dx / len) * bend;
+    return 'M' + A.x.toFixed(1) + ',' + A.y.toFixed(1) + ' Q' + cx.toFixed(1) + ',' + cy.toFixed(1) + ' ' + B.x.toFixed(1) + ',' + B.y.toFixed(1);
+  }
+
+  /* numbered badges on the route of the current step: 1 → 2 → 3 */
+  function paintHops(pos, route, color) {
+    const g = document.getElementById('cvhops');
+    if (!g) return;
+    if (route.length < 2) { g.innerHTML = ''; return; }
+    g.innerHTML = route.map((id, i) => {
+      const p = pos[id];
+      if (!p) return '';
+      const last = i === route.length - 1;
+      return '<g class="hopnum" opacity="' + (last ? '.95' : '.8') + '">' +
+        '<circle cx="' + (p.x + 26).toFixed(1) + '" cy="' + (p.y - 26).toFixed(1) + '" r="9" fill="' + color + '" opacity=".92"/>' +
+        '<text x="' + (p.x + 26).toFixed(1) + '" y="' + (p.y - 22.5).toFixed(1) + '" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">' + (i + 1) + '</text>' +
+        '</g>';
+    }).join('');
+  }
+
   function paintRoutes(sess, stepIdx) {
     const g = document.getElementById('cvroute');
     if (!g) return;
@@ -6451,17 +6854,22 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const r = cv.getBoundingClientRect();
     const pos = layoutPx(sess.topo, r.width, r.height);
     let out = '';
-    stepPackets(sess, stepIdx).forEach((p) => {
+    const pkts = stepPackets(sess, stepIdx);
+    const last = pkts[pkts.length - 1];
+    pkts.forEach((p) => {
       const route = routeFor(sess.topo, p.src, p.dst);
       if (route.length < 2) return;
+      const dim = last && p !== last;
       out += route.slice(0, -1).map((id, i) => {
         const a = pos[id], b = pos[route[i + 1]];
         if (!a || !b) return '';
-        return '<line x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) +
-          '" y2="' + b.y.toFixed(1) + '" class="link path" stroke="' + p.protoColor + '" stroke-opacity=".55"/>';
+        return '<path d="' + pathBetweenPts(a, b, i % 2 ? 1 : -1) + '" class="link path" stroke="' + p.protoColor +
+          '" stroke-opacity="' + (dim ? '.28' : '.62') + '" marker-end="url(#arrow)" style="color:' + p.protoColor + '"/>';
       }).join('');
     });
     g.innerHTML = out;
+    const g2 = document.getElementById('cvhops');
+    if (g2) g2.innerHTML = '';
   }
 
   /* when the canvas is wider than its box (phones), keep the action in frame */
@@ -6494,16 +6902,17 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const pkts = stepPackets(sess, stepIdx);
     paintRoutes(sess, stepIdx);
     if (!pkts.length) { if (cb) cb(); return; }
-    const whole = 980 / S.speed;
+    const whole = 1250 / S.speed;
     let i = 0;
     function next() {
       if (i >= pkts.length) { if (cb) cb(); return; }
       const p = pkts[i];
       const route = routeFor(sess.topo, p.src, p.dst);
       const hops = Math.max(1, route.length - 1);
-      const segDur = Math.max(170 / S.speed, whole / hops);
+      const segDur = Math.max(260 / S.speed, whole / hops);
       if (route.length >= 2) {
-        moveAlong(geo, route, p.protoColor, segDur, p.dropped);
+        const tagTxt = (p.proto || 'IP') + (hops > 1 ? ' · ' + hops + ' hops' : '');
+        moveAlong(geo, route, p.protoColor, segDur, p.dropped, tagTxt);
         pulseNodes(route);
       }
       flashNodes(p);
@@ -6614,11 +7023,11 @@ table.grid td.hi{color:var(--text);font-weight:600}
     if (route.length < 2) {
       return '<span class="rc-lab">Route</span><span class="rc-hint">this packet leaves the drawn network</span>';
     }
-    const names = route.map((id) => {
+    const names = route.map((id, i) => {
       const d = sess.topo.devices.find((x) => x.id === id) || { label: id };
-      return '<b>' + esc(d.label) + '</b>';
+      return '<span class="rc-step"><em>' + (i + 1) + '</em><b>' + esc(d.label) + '</b></span>';
     });
-    return '<span class="rc-lab">Route</span><span class="rc-path">' + names.join('<i>→</i>') + '</span>' +
+    return '<span class="rc-lab">The packet goes</span><span class="rc-path">' + names.join('<i>›</i>') + '</span>' +
       '<span class="rc-hint">' + (route.length - 1) + ' hop' + (route.length === 2 ? '' : 's') +
       (p.dropped ? ' · this one is dropped' : '') + '</span>';
   }
@@ -6630,13 +7039,20 @@ table.grid td.hi{color:var(--text);font-weight:600}
     let h = '<div class="explain">';
     h += '<div class="eyebrow"><span>Step ' + (stepIdx + 1) + ' of ' + total + '</span><span>' + esc(lesson.steps[stepIdx].sub ? '' : '') + '</span></div>';
     h += '<h3>' + esc(st.title) + '</h3><div class="sub">' + esc(st.sub || '') + '</div>';
-    if (st.what) h += '<div class="qa"><div class="k" style="--kc:var(--accent)">What is happening</div><p>' + esc(st.what) + '</p></div>';
-    if (st.why) h += '<div class="qa why"><div class="k">Why it works this way</div><p>' + esc(st.why) + '</p></div>';
-    if (st.analogy) h += '<div class="qa analogy"><div class="k">Analogy</div><p>' + esc(st.analogy) + '</p></div>';
+    const easy = S.simple !== false;
+    if (st.what) h += '<div class="qa"><div class="k" style="--kc:var(--accent)">What is happening</div>' +
+      (easy ? SX.lines(st.what) : '<p>' + esc(st.what) + '</p>') + '</div>';
+    if (st.why) h += '<div class="qa why"><div class="k">Why it works this way</div>' +
+      (easy ? SX.lines(st.why) : '<p>' + esc(st.why) + '</p>') + '</div>';
+    if (st.analogy) h += '<div class="qa analogy"><div class="k">Think of it like this</div><p>' + esc(SX.plainSwap(st.analogy)) + '</p></div>';
+    if (easy) h += SX.wordHelp([st.what, st.why, st.sub, (st.terms || []).map((t) => t.t).join(' ')].join(' '));
     if (st.card) h += dataCard(st.card);
     if (st.terms && st.terms.length) {
       h += '<div class="terms"><div class="k" style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700">Terms</div>' +
-        st.terms.map((t) => '<div class="term"><b>' + esc(t.t) + '</b> — <span>' + esc(t.d) + '</span></div>').join('') + '</div>';
+        st.terms.map((t) => {
+          const easy = (root.PE_SIMPLE && S.simple !== false) ? SX.plainSwap(t.d) : t.d;
+          return '<div class="term"><b>' + esc(t.t) + '</b> — <span>' + esc(easy) + '</span></div>';
+        }).join('') + '</div>';
     }
     if (lesson.refs && lesson.refs.length) {
       h += '<div class="terms"><div class="k" style="font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);font-weight:700">Further reading</div>' +
@@ -6686,7 +7102,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
         h += '<button class="' + cls + '" data-act="quiz" data-q="' + qi + '" data-o="' + oi + '"' + (picked !== undefined ? ' disabled' : '') + '>' +
           '<span class="b">' + String.fromCharCode(65 + oi) + '</span><span>' + esc(o) + '</span></button>';
       });
-      if (picked !== undefined) h += '<div class="why">' + esc(q.why) + '</div>';
+      if (picked !== undefined) h += '<div class="why">' + esc(S.simple !== false ? SX.plainSwap(q.why) : q.why) + '</div>';
       h += '<div style="height:12px"></div>';
     });
     h += '</div></div>';
@@ -6794,6 +7210,15 @@ table.grid td.hi{color:var(--text);font-weight:600}
     return h;
   }
 
+  function redraw() {
+    const lesson = byId[S.lessonId];
+    if (!lesson || S.view !== 'lesson') return;
+    const sess = session(lesson);
+    const stepIdx = Math.min(S.step, lesson.steps.length - 1);
+    drawLinks(sess);
+    paintRoutes(sess, stepIdx);
+  }
+
   function afterRender() {
     const lesson = byId[S.lessonId];
     const sess = session(lesson);
@@ -6844,13 +7269,15 @@ table.grid td.hi{color:var(--text);font-weight:600}
     fitHex();
   }
 
-  root.PE_LESSON = {
+  root.PE_LESSON = { redraw,
     render, afterRender, refreshInspector, session, LS,
     animate(sess, stepIdx) { animateStep(sess, stepIdx); },
     fitHex,
     onResize() {
+      if (!document.getElementById('cv')) return;
+      redraw();
       const sess = session(byId[S.lessonId]);
-      if (document.getElementById('cv')) drawLinks(sess);
+      centerCanvas(sess, Math.min(S.step, byId[S.lessonId].steps.length - 1));
     },
   };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -7764,10 +8191,10 @@ table.grid td.hi{color:var(--text);font-weight:600}
   const { S, esc, ICON, byId } = U;
 
   const PATHS = [
-    { id: 'start', title: 'I am completely new', sub: 'Start at lesson 1 and go in order. Nothing is assumed.', from: 0, to: 8, icon: 'home' },
-    { id: 'web', title: 'I want to understand websites', sub: 'DNS → TCP → TLS → HTTP, the exact path of a page load.', from: 5, to: 12, icon: 'web' },
-    { id: 'secure', title: 'I care about security', sub: 'Certificates, TLS internals, SSH, DNSSEC, zero trust.', from: 9, to: 12, icon: 'ca' },
-    { id: 'ops', title: 'I run networks or clusters', sub: 'NAT, BGP, IPv6, Kubernetes, VPCs, conntrack, QoS.', from: 14, to: 36, icon: 'router' },
+    { id: 'start', title: 'I know nothing yet', sub: 'Start from zero and go in order. Nothing is assumed, and every hard word is explained.', from: 0, to: 8, icon: 'home' },
+    { id: 'web', title: 'I want to know why a website opens', sub: 'The real steps: find the name, open a connection, make it private, then ask for the page.', from: 5, to: 12, icon: 'web' },
+    { id: 'secure', title: 'I want to learn about safety', sub: 'Lock icons, certificates, safe logins, and how attackers get caught.', from: 9, to: 12, icon: 'ca' },
+    { id: 'ops', title: 'I look after networks', sub: 'Office and cloud networks, containers, and how to find out what is broken.', from: 14, to: 36, icon: 'router' },
   ];
 
   function render() {
@@ -7782,8 +8209,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
       '<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">' +
       '<div style="flex:1;min-width:290px">' +
       '<div class="chip" style="color:var(--accent);border-color:#d5d7fb;background:var(--accent-soft)">Free · ' + U.TRACKS.length + ' tracks · ' + U.LESSONS.length + ' short lessons</div>' +
-      '<h1 style="margin:14px 0 10px;max-width:24ch">See what actually happens when you open a website.</h1>' +
-      '<p style="color:var(--text2);font-size:16px;max-width:58ch;line-height:1.65">Every lesson is a story you can play back: the packets move between the real boxes, and you can open any box to look inside. Start with no knowledge at all — the first lesson explains what a packet is.</p>' +
+      '<h1 style="margin:14px 0 10px;max-width:24ch">Learn how the internet works — in easy words.</h1>' +
+      '<p style="color:var(--text2);font-size:16px;max-width:58ch;line-height:1.65">You do not need any background. Each lesson shows you one small idea, then plays the real traffic on a diagram so you can watch it happen. You can also open any device and look inside it, like opening the bonnet of a car.</p>' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:10px 13px;border-radius:11px;background:#fff;border:1px solid var(--line);max-width:560px">' +
+      '<b style="font-size:13px">Easy English:</b>' +
+      '<button class="btn sm ' + (S.simple ? 'on' : '') + '" data-act="simple">' + (S.simple ? '✓ On — short lines + word help' : 'Off — original wording') + '</button>' +
+      '<span style="font-size:12px;color:var(--muted)">Tap to switch. Hard words get a plain meaning.</span></div>' +
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">' +
       '<button class="btn primary lg" data-act="openLesson" data-id="' + next.id + '">' + (o.done ? 'Continue: ' + esc(next.title) : 'Start lesson 1') + ' ' + ICON.next.replace('<svg', '<svg width="14" height="14"') + '</button>' +
       '<button class="btn lg" data-act="view" data-v="lab">Look inside a device</button>' +
@@ -7830,10 +8261,10 @@ table.grid td.hi{color:var(--text);font-weight:600}
     h += '<div class="panel" style="margin-top:22px"><div class="hd"><span>How a lesson works</span>' +
       '<span class="spacer"></span><span style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:500">four things, every time</span></div>' +
       '<div class="bd" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px">' +
-      [['' + ICON.book, 'Read one idea', 'A short explanation in plain words, why it works that way, and an analogy you already know.'],
-        [ICON.play, 'Watch the packets', 'The diagram animates the real exchange hop by hop. Red ✕ means a packet was dropped.'],
-        [ICON.terminal, 'Open the bytes', 'Click a packet, then a field, and see the exact bytes it occupies. Checksums are computed, not faked.'],
-        [ICON.grid, 'Open a device', 'Every box in the diagram is clickable: its interfaces, routes, open ports and a working shell.']]
+      [['' + ICON.book, 'Read one small idea', 'A few short lines in easy words, why it happens that way, and something you already know that works the same way.'],
+        [ICON.play, 'Watch the packet move', 'The label on the moving dot tells you what it is and how many stops it has. A red ✕ means it was dropped.'],
+        [ICON.terminal, 'Open the bytes', 'Click a packet, then click a field. You will see exactly which bytes it uses. The maths is real, not fake.'],
+        [ICON.grid, 'Open a device', 'Every box can be opened: its addresses, its routes, the doors it listens on, and a shell you can type into.']]
         .map(([ic, t, d], i) => '<div style="display:flex;gap:11px"><div style="flex:0 0 30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700">' + (i + 1) + '</div>' +
           '<div><div style="font-size:14px;font-weight:650;margin-bottom:3px">' + esc(t) + '</div>' +
           '<div style="font-size:12.5px;color:var(--muted);line-height:1.55">' + esc(d) + '</div></div></div>').join('') +
@@ -7873,12 +8304,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
     /* ---------- free explore ---------- */
     h += '<div class="sectionhead" style="margin-top:26px"><div><h2>Or wander off on your own</h2>' +
       '<p>The same material, without the rails.</p></div></div><div class="cards">' +
-      [['lab', 'Explore devices', 'Open any box in ten different networks — interfaces, routes, open ports, and a shell that answers real commands.'],
-        ['library', 'Protocol guide', root.PE_DATA.PROTOCOLS.length + ' protocols: what goes on the wire, the RFC, and the one gotcha for each.'],
-        ['exam', 'Practice test', 'A timed mixed quiz sampled from every track, with a review of what you missed.'],
-        ['timeline', 'History', (root.PE_DATA.TIMELINE || []).length + ' decisions that shaped the internet, in order.'],
-        ['glossary', 'Word list', 'Every term from every lesson, in one searchable place.'],
-        ['sources', 'Books & links', 'The books, repositories and RFCs this course is written against.']]
+      [['lab', 'Look inside devices', 'Ten different networks. Open any box: addresses, routes, open doors, and a shell that really answers.'],
+        ['library', 'Protocol guide', root.PE_DATA.PROTOCOLS.length + ' rules of the road: what each one puts on the wire, and the one mistake people make.'],
+        ['exam', 'Practice test', 'A timed quiz made from all the lessons, with an explanation of everything you got wrong.'],
+        ['timeline', 'History', (root.PE_DATA.TIMELINE || []).length + ' turning points, in the order they happened.'],
+        ['glossary', 'Word list', 'Every word used in the course, explained simply, in one place.'],
+        ['sources', 'Books & links', 'Where to read more, if you want to go deeper.']]
         .map(([v, t, d]) => '<button class="pcard" data-act="view" data-v="' + v + '">' +
           '<div style="font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px">' + esc(t) + '</div>' +
           '<div style="font-size:13px;color:var(--muted);line-height:1.55">' + esc(d) + '</div></button>').join('') +
@@ -8697,6 +9128,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
         break;
       case 'exam-again':
         root.PE_EXTRA.examReset();
+        break;
+      case 'simple':
+        S.simple = !S.simple;
+        U.save();
+        U.toast(S.simple ? 'Easy English on — short lines and word help' : 'Showing the original wording');
+        render(true);
         break;
       case 'palette':
         ev.preventDefault();

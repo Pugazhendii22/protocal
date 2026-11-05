@@ -3,6 +3,13 @@
 A guided, hands-on course on how the internet actually works. Built as a single
 static site: no build step, no dependencies, no network calls.
 
+**Easy English, on by default.** Every lesson's explanation is rewritten live
+into short lines (13 words or fewer, one idea each), difficult words are swapped
+for simple ones ("utilise" → "use", "approximately" → "about", "therefore" →
+"so"), and a **Word help** row under each step explains the jargon that has to
+stay ("sequence number", "TLS", "conntrack") in one plain sentence. Toggle it
+from the top bar or the home page; the choice is remembered.
+
 **Light, beginner-first UI.** Plain-language navigation (*Start here · Lessons ·
 Explore devices · Practice test*), four "where would you like to start?" paths on
 the home page, and a lesson layout where the explanation, the animated network,
@@ -28,6 +35,10 @@ python3 -m http.server 8080
 | 6 · Advanced & modern | performance (latency, BDP, bufferbloat) · IPv6 & NDP · anycast/CDN/DNS steering · middleboxes & CGNAT · observability, eBPF & attacks |
 | 7 · Protocol deep dives | TLS 1.3 handshake internals · QUIC & HTTP/3 · HTTP/2 multiplexing · DNSSEC & DNS privacy · Wi-Fi association & WPA2 · time and NTP |
 | 8 · Cloud, containers & ops | Kubernetes pod networking & ClusterIPs · cloud VPCs, routes and two kinds of firewall · netfilter & conntrack · mTLS and service mesh · QoS and queueing · RTP/ICE/TURN real-time media |
+
+The diagram draws curved links so crossings stay readable, numbers the route
+(1 → 2 → 3) in a breadcrumb above the canvas, labels the moving packet
+("TCP · 3 hops"), and pulses every device it passes through.
 
 The animated diagram is routed on the real topology: a packet travels
 **hop by hop along the drawn links** (284 packets → 623 link segments, verified

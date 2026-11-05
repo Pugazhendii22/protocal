@@ -7,10 +7,10 @@
   const { S, esc, ICON, byId } = U;
 
   const PATHS = [
-    { id: 'start', title: 'I am completely new', sub: 'Start at lesson 1 and go in order. Nothing is assumed.', from: 0, to: 8, icon: 'home' },
-    { id: 'web', title: 'I want to understand websites', sub: 'DNS → TCP → TLS → HTTP, the exact path of a page load.', from: 5, to: 12, icon: 'web' },
-    { id: 'secure', title: 'I care about security', sub: 'Certificates, TLS internals, SSH, DNSSEC, zero trust.', from: 9, to: 12, icon: 'ca' },
-    { id: 'ops', title: 'I run networks or clusters', sub: 'NAT, BGP, IPv6, Kubernetes, VPCs, conntrack, QoS.', from: 14, to: 36, icon: 'router' },
+    { id: 'start', title: 'I know nothing yet', sub: 'Start from zero and go in order. Nothing is assumed, and every hard word is explained.', from: 0, to: 8, icon: 'home' },
+    { id: 'web', title: 'I want to know why a website opens', sub: 'The real steps: find the name, open a connection, make it private, then ask for the page.', from: 5, to: 12, icon: 'web' },
+    { id: 'secure', title: 'I want to learn about safety', sub: 'Lock icons, certificates, safe logins, and how attackers get caught.', from: 9, to: 12, icon: 'ca' },
+    { id: 'ops', title: 'I look after networks', sub: 'Office and cloud networks, containers, and how to find out what is broken.', from: 14, to: 36, icon: 'router' },
   ];
 
   function render() {
@@ -25,8 +25,12 @@
       '<div style="display:flex;gap:30px;flex-wrap:wrap;align-items:center">' +
       '<div style="flex:1;min-width:290px">' +
       '<div class="chip" style="color:var(--accent);border-color:#d5d7fb;background:var(--accent-soft)">Free · ' + U.TRACKS.length + ' tracks · ' + U.LESSONS.length + ' short lessons</div>' +
-      '<h1 style="margin:14px 0 10px;max-width:24ch">See what actually happens when you open a website.</h1>' +
-      '<p style="color:var(--text2);font-size:16px;max-width:58ch;line-height:1.65">Every lesson is a story you can play back: the packets move between the real boxes, and you can open any box to look inside. Start with no knowledge at all — the first lesson explains what a packet is.</p>' +
+      '<h1 style="margin:14px 0 10px;max-width:24ch">Learn how the internet works — in easy words.</h1>' +
+      '<p style="color:var(--text2);font-size:16px;max-width:58ch;line-height:1.65">You do not need any background. Each lesson shows you one small idea, then plays the real traffic on a diagram so you can watch it happen. You can also open any device and look inside it, like opening the bonnet of a car.</p>' +
+      '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding:10px 13px;border-radius:11px;background:#fff;border:1px solid var(--line);max-width:560px">' +
+      '<b style="font-size:13px">Easy English:</b>' +
+      '<button class="btn sm ' + (S.simple ? 'on' : '') + '" data-act="simple">' + (S.simple ? '✓ On — short lines + word help' : 'Off — original wording') + '</button>' +
+      '<span style="font-size:12px;color:var(--muted)">Tap to switch. Hard words get a plain meaning.</span></div>' +
       '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">' +
       '<button class="btn primary lg" data-act="openLesson" data-id="' + next.id + '">' + (o.done ? 'Continue: ' + esc(next.title) : 'Start lesson 1') + ' ' + ICON.next.replace('<svg', '<svg width="14" height="14"') + '</button>' +
       '<button class="btn lg" data-act="view" data-v="lab">Look inside a device</button>' +
@@ -73,10 +77,10 @@
     h += '<div class="panel" style="margin-top:22px"><div class="hd"><span>How a lesson works</span>' +
       '<span class="spacer"></span><span style="text-transform:none;letter-spacing:0;color:var(--muted);font-weight:500">four things, every time</span></div>' +
       '<div class="bd" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px">' +
-      [['' + ICON.book, 'Read one idea', 'A short explanation in plain words, why it works that way, and an analogy you already know.'],
-        [ICON.play, 'Watch the packets', 'The diagram animates the real exchange hop by hop. Red ✕ means a packet was dropped.'],
-        [ICON.terminal, 'Open the bytes', 'Click a packet, then a field, and see the exact bytes it occupies. Checksums are computed, not faked.'],
-        [ICON.grid, 'Open a device', 'Every box in the diagram is clickable: its interfaces, routes, open ports and a working shell.']]
+      [['' + ICON.book, 'Read one small idea', 'A few short lines in easy words, why it happens that way, and something you already know that works the same way.'],
+        [ICON.play, 'Watch the packet move', 'The label on the moving dot tells you what it is and how many stops it has. A red ✕ means it was dropped.'],
+        [ICON.terminal, 'Open the bytes', 'Click a packet, then click a field. You will see exactly which bytes it uses. The maths is real, not fake.'],
+        [ICON.grid, 'Open a device', 'Every box can be opened: its addresses, its routes, the doors it listens on, and a shell you can type into.']]
         .map(([ic, t, d], i) => '<div style="display:flex;gap:11px"><div style="flex:0 0 30px;height:30px;border-radius:9px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;font-weight:700">' + (i + 1) + '</div>' +
           '<div><div style="font-size:14px;font-weight:650;margin-bottom:3px">' + esc(t) + '</div>' +
           '<div style="font-size:12.5px;color:var(--muted);line-height:1.55">' + esc(d) + '</div></div></div>').join('') +
@@ -116,12 +120,12 @@
     /* ---------- free explore ---------- */
     h += '<div class="sectionhead" style="margin-top:26px"><div><h2>Or wander off on your own</h2>' +
       '<p>The same material, without the rails.</p></div></div><div class="cards">' +
-      [['lab', 'Explore devices', 'Open any box in ten different networks — interfaces, routes, open ports, and a shell that answers real commands.'],
-        ['library', 'Protocol guide', root.PE_DATA.PROTOCOLS.length + ' protocols: what goes on the wire, the RFC, and the one gotcha for each.'],
-        ['exam', 'Practice test', 'A timed mixed quiz sampled from every track, with a review of what you missed.'],
-        ['timeline', 'History', (root.PE_DATA.TIMELINE || []).length + ' decisions that shaped the internet, in order.'],
-        ['glossary', 'Word list', 'Every term from every lesson, in one searchable place.'],
-        ['sources', 'Books & links', 'The books, repositories and RFCs this course is written against.']]
+      [['lab', 'Look inside devices', 'Ten different networks. Open any box: addresses, routes, open doors, and a shell that really answers.'],
+        ['library', 'Protocol guide', root.PE_DATA.PROTOCOLS.length + ' rules of the road: what each one puts on the wire, and the one mistake people make.'],
+        ['exam', 'Practice test', 'A timed quiz made from all the lessons, with an explanation of everything you got wrong.'],
+        ['timeline', 'History', (root.PE_DATA.TIMELINE || []).length + ' turning points, in the order they happened.'],
+        ['glossary', 'Word list', 'Every word used in the course, explained simply, in one place.'],
+        ['sources', 'Books & links', 'Where to read more, if you want to go deeper.']]
         .map(([v, t, d]) => '<button class="pcard" data-act="view" data-v="' + v + '">' +
           '<div style="font-size:15px;font-weight:700;letter-spacing:-.01em;margin-bottom:5px">' + esc(t) + '</div>' +
           '<div style="font-size:13px;color:var(--muted);line-height:1.55">' + esc(d) + '</div></button>').join('') +

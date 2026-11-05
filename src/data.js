@@ -8,7 +8,7 @@
     {
       id: 'basics',
       n: 1,
-      title: 'Foundations',
+      title: 'The very basics',
       tag: 'Start here',
       blurb: 'What a packet is, and the three addresses on every one of them. No prior knowledge assumed.',
       color: '#5b8def',
@@ -24,7 +24,7 @@
     {
       id: 'security',
       n: 3,
-      title: 'Security',
+      title: 'Keeping it safe',
       tag: 'The padlock, properly',
       blurb: 'TLS, certificates and SSH — what encryption and authentication actually do for you.',
       color: '#c084fc',
@@ -40,7 +40,7 @@
     {
       id: 'advanced',
       n: 5,
-      title: 'Going deeper',
+      title: 'How it goes wrong',
       tag: 'For the curious',
       blurb: 'UDP and QUIC, ICMP diagnostics, TCP recovery and congestion, BGP, and a full diagnostic walkthrough.',
       color: '#f87171',
@@ -48,7 +48,7 @@
     {
       id: 'modern',
       n: 6,
-      title: 'Advanced & modern',
+      title: 'Modern internet',
       tag: 'Beyond the textbook basics',
       blurb: 'Performance physics, IPv6, anycast and CDNs, middleboxes and CGNAT, and how large networks observe and defend themselves. Written against the standard references, each lesson with further reading.',
       color: '#38bdf8',
@@ -56,7 +56,7 @@
     {
       id: 'deep',
       n: 7,
-      title: 'Protocol deep dives',
+      title: 'Inside the protocols',
       tag: 'Read the specs',
       blurb: 'TLS 1.3 internals, QUIC and HTTP/3, HTTP/2 multiplexing, DNSSEC and DNS privacy, Wi-Fi association and the WPA2 handshake, and the time problem nobody debugs.',
       color: '#a78bfa',
@@ -64,7 +64,7 @@
     {
       id: 'ops',
       n: 8,
-      title: 'Cloud, containers & ops',
+      title: 'Cloud and operations',
       tag: 'Where it all runs now',
       blurb: 'Kubernetes pod networking and ClusterIPs, cloud VPCs and two kinds of firewall, Linux netfilter and conntrack, service mesh mTLS, QoS, and real-time media with ICE/TURN.',
       color: '#fb923c',

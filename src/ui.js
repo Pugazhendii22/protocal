@@ -27,6 +27,7 @@
     lib: null,
     search: '',
     menu: false,
+    simple: true,
   };
 
   function load() {
@@ -37,11 +38,12 @@
       if (j.done) S.done = j.done;
       if (j.quiz) S.quiz = j.quiz;
       if (j.lessonId && byId[j.lessonId]) S.lessonId = j.lessonId;
+      if (j.simple === false) S.simple = false;
     } catch (e) { /* ignore */ }
   }
   function save() {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ done: S.done, quiz: S.quiz, lessonId: S.lessonId }));
+      localStorage.setItem(STORE_KEY, JSON.stringify({ done: S.done, quiz: S.quiz, lessonId: S.lessonId, simple: S.simple }));
     } catch (e) { /* ignore */ }
   }
 
@@ -195,7 +197,9 @@
       const t = trackOf[l.track];
       crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
         '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
-      right = '<div class="seg" style="margin-right:2px">' +
+      right = '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' hide-sm" data-act="simple" title="Short, easy sentences and word help">' +
+          (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
+        '<div class="seg" style="margin-right:2px">' +
           '<button data-act="prev" title="Previous lesson">‹</button>' +
           '<button data-act="nextLesson" title="Next lesson">›</button></div>' +
         '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
