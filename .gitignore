@@ -1,0 +1,7 @@
+node_modules/
+.npm/
+.cache/
+*.log
+.DS_Store
+shots/
+.sudo_as_admin_successful

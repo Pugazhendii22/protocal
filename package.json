@@ -1,0 +1,16 @@
+{
+  "name": "protocol-explorer",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A guided, packet-by-packet course on how the internet works. No build step, no runtime dependencies.",
+  "scripts": {
+    "serve": "python3 -m http.server 8080 --bind 0.0.0.0",
+    "build": "node tools/build.js",
+    "smoke": "node tools/smoke.js",
+    "crawl": "node tools/crawl.js",
+    "test": "node tools/build.js && node tools/smoke.js"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.48.0"
+  }
+}
