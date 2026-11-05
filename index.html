@@ -607,6 +607,8 @@ table.grid td.hi{color:var(--text);font-weight:600}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
 .hide-sm{display:inline}
+.scrim{position:fixed;inset:0;background:rgba(15,23,41,.36);z-index:85;opacity:0;pointer-events:none;transition:opacity .2s;display:none}
+@media (max-width:1020px){.scrim{display:block}}
 
 /* ============================================================
    responsive
@@ -626,10 +628,11 @@ table.grid td.hi{color:var(--text);font-weight:600}
   :root{--sbw:0px}
   .app{grid-template-columns:minmax(0,1fr)}
   .sidebar{
-    position:fixed;left:0;top:0;bottom:0;width:288px;z-index:60;transform:translateX(-102%);
+    position:fixed;left:0;top:0;bottom:0;width:288px;z-index:90;transform:translateX(-102%);
     transition:transform .22s ease;box-shadow:var(--shadow-lg)
   }
   .sidebar.open{transform:none}
+  .scrim.on{opacity:1;pointer-events:auto}
   .menubtn{display:grid}
   .labgrid{grid-template-columns:minmax(0,1fr)}
   .view{padding:18px 16px 90px}
@@ -674,16 +677,187 @@ table.grid td.hi{color:var(--text);font-weight:600}
   *,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}
 }
 
+.side-foot{flex-wrap:wrap;gap:7px}
+.side-foot .simplebtn{order:-1;width:100%;justify-content:center}
+
+/* ============================================================
+   mobile (<=760px) — the phone layout is the primary one
+   ============================================================ */
+.only-narrow{display:none}
+.tabbar{display:none}
+@media (max-width:1020px){
+  /* bottom tab bar */
+  .tabbar{
+    display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:80;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:5px 4px calc(5px + env(safe-area-inset-bottom,0px))
+  }
+  .tabbar button{
+    display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:10px;
+    font-size:10.5px;font-weight:650;color:var(--muted);min-height:48px;justify-content:center
+  }
+  .tabbar button .ti{font-size:17px;line-height:1}
+  .tabbar button:active{background:var(--accent-soft);color:var(--accent)}
+  .tabbar button.on{color:var(--accent)}
+  .tabbar button.on .ti{background:var(--accent-soft);border-radius:9px}
+  .tabbar .ti{display:grid;place-items:center;width:34px;height:26px}
+  .topbar .btn.sm:not(.hide-sm){display:none}
+}
+
+@media (max-width:760px){
+  .only-wide{display:none!important}
+  .only-narrow{display:inline-flex}
+
+  /* type scale for phones */
+  body{font-size:14.5px}
+  h1{font-size:23px;line-height:1.25;letter-spacing:-.02em}
+  h2{font-size:19px}
+  .lead{font-size:14.5px;line-height:1.6;margin:8px 0 16px}
+  .lesson-head .t1{font-size:22px}
+  .lesson-head .t2{font-size:14px}
+  .explain{padding:15px 14px;border-radius:12px}
+  .explain h3{font-size:19px}
+  .explain .sub{font-size:13.5px}
+  .qa{padding:11px 12px;margin-top:14px}
+  .qa p{font-size:14.5px;line-height:1.62}
+  .plainlist li{font-size:14.5px;line-height:1.55}
+  .term{font-size:13px}
+  .sectionhead h2{font-size:19px}
+  .sectionhead p{font-size:13.5px}
+  .panel > .hd{padding:10px 13px;font-size:11.5px}
+  .panel > .bd{padding:13px}
+
+  /* any hard-coded two-column block becomes one column on a phone */
+  [style*="minmax(0,1fr) minmax(0,1fr)"],
+  [style*="minmax(0,1.15fr)"]{grid-template-columns:1fr!important}
+
+  /* comfortable tap targets */
+  .btn{padding:11px 14px;font-size:13.5px;min-height:44px}
+  .btn.sm{padding:9px 12px;font-size:12.5px;min-height:38px}
+  .icobtn{width:42px;height:42px}
+  .icobtn.menubtn{display:grid}
+  .chip{padding:5px 10px;min-height:30px}
+  button.chip{min-height:38px}
+  .navitem{padding:11px 10px;font-size:14px;min-height:44px}
+  /* eight tabs won't fit on a phone: use a 4x2 grid, every cell a full tap target */
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;overflow:visible;padding:4px;background:var(--panel3);border:1px solid var(--line);border-radius:12px;margin:0 12px 12px}
+  .tabs button{padding:11px 4px;font-size:11.5px;border:0!important;border-radius:8px;min-height:44px;background:transparent;justify-content:center;text-align:center}
+  .tabs button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow);font-weight:750}
+  .seg button{min-height:36px;padding:8px 10px}
+  .opt{padding:13px;font-size:14px;min-height:52px}
+
+  /* topbar: essentials only */
+  .topbar{padding:9px 12px;gap:8px}
+  .crumbs{font-size:13px;min-width:0;flex:1;overflow:hidden}
+  .crumbs .hint{display:none}
+  .crumbs b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100%}
+
+  /* phone order: read the idea first, then watch the packets */
+  .col-explain{order:1}
+  .col-net{order:2}
+
+  /* lesson chrome */
+  .view{padding:14px 12px 108px}
+  .pips{
+    flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:0 -12px 10px;padding:2px 12px 12px;
+    scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x proximity
+  }
+  .pips::-webkit-scrollbar{display:none}
+  .pip{flex:0 0 auto;padding:6px 11px 6px 6px;scroll-snap-align:center}
+  .pip span{max-width:150px;font-size:12.5px;white-space:normal;line-height:1.22;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lesson-head .chip{font-size:11px;padding:4px 9px}
+  .lesson-head > div{min-width:0!important}
+  .goals{flex-wrap:wrap;gap:6px;margin-top:10px}
+  .pip b{width:20px;height:20px;font-size:10.5px}
+  .lessonnav{bottom:calc(58px + env(safe-area-inset-bottom,0px));margin:14px -12px -108px;padding:10px 12px;gap:8px}
+  .lessonnav .lbl{font-size:11.5px;width:100%}
+  .lessonnav .track{max-width:none;order:3;width:100%}
+  .lessonnav .btn{min-height:42px}
+
+  /* diagram */
+  .canvaswrap{padding:6px}
+  /* fit the whole map on the phone: no sideways panning, nothing cut off */
+  .canvas{height:474px;min-width:0;width:100%}
+  .canvaswrap{overflow-x:hidden}
+  .node{padding:5px 7px;border-radius:10px;min-width:46px;max-width:86px}
+  .node .bx{width:26px;height:26px;border-radius:8px}
+  .node .bx svg{width:15px;height:15px}
+  .node .bx svg *{stroke-width:2.15}
+  .node.dim .bx{background:#eef2f9;color:#7a8aa2}
+  .node.dim .nm{color:#5f6e86}
+  .node .nm{font-size:9.5px;max-width:74px;line-height:1.2}
+  .node .ip{display:none}
+  .pkttag{font-size:9.5px;padding:1px 4px}
+  .playbar{padding:8px 10px;gap:6px}
+  .playbar .btn{min-height:40px}
+  .routecrumb{padding:8px 12px;font-size:11.5px;gap:5px}
+  .rc-lab{font-size:9.5px;width:100%}
+
+  /* device lab: dropdowns, no clipped scrollers */
+  .pickers{display:flex;gap:9px;margin:0 0 12px}
+  .pickers label{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .pickers span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:750}
+  .pickers select{
+    width:100%;appearance:none;-webkit-appearance:none;
+    background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 11px center;
+    border:1px solid var(--line2);border-radius:11px;padding:12px 32px 12px 12px;font-size:14px;font-weight:600;color:var(--text);
+    box-shadow:var(--shadow);min-height:46px
+  }
+  .labgrid{display:block}
+  .devpanel{display:none}
+  .cli .out{height:224px;font-size:11.5px}
+  .cli input{font-size:15px}
+  .cli .hints button{min-height:34px;font-size:11px}
+  .kv{grid-template-columns:112px minmax(0,1fr);font-size:12.5px}
+  .kv dd{font-size:11.5px}
+
+  /* packet list: let the info line use two lines instead of cutting it */
+  .pcaplist{max-height:none;overflow-x:hidden}
+  table.pcap td{white-space:normal}
+  table.pcap td:nth-child(6){font-size:11.5px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* wide tables scroll sideways instead of squashing */
+  .pcaplist{max-height:none}
+  table.grid{overflow-x:auto}
+  table.grid td,table.grid th{white-space:normal}
+  .datacard{overflow-x:auto}
+
+  /* device detail on a phone */
+  .ovgrid{display:block!important}
+  .ovgrid > div + div{margin-top:16px}
+  .kv{grid-template-columns:1fr!important;gap:0!important}
+  .kv dt{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-top:9px}
+  .kv dd{font-size:12.5px;white-space:normal;overflow-wrap:anywhere}
+  .peerrow span:first-child{flex:0 0 96px!important}
+  .devmac{font-size:9.5px;padding:2px 6px}
+  .pickers + .labgrid{margin-top:0}
+}
+
+@media (max-width:420px){
+  .tabbar button{font-size:10px}
+  .pips .pip span{max-width:120px}
+  .canvas{height:490px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar" id="sidebar"></aside>
+  <div id="scrim" class="scrim"></div>
   <div class="main">
     <header class="topbar" id="topbar"></header>
     <div id="view" class="view scroll"></div>
   </div>
 </div>
+<nav id="tabbar" class="tabbar">
+  <button data-act="view" data-v="tour" data-tab="tour"><span class="ti" data-ico="home"></span><span>Home</span></button>
+  <button data-act="menu" data-tab="lessons"><span class="ti" data-ico="list"></span><span>Lessons</span></button>
+  <button data-act="view" data-v="lab" data-tab="lab"><span class="ti" data-ico="grid"></span><span>Devices</span></button>
+  <button data-act="view" data-v="exam" data-tab="exam"><span class="ti" data-ico="play"></span><span>Test</span></button>
+  <button data-act="palette" data-tab="search"><span class="ti" data-ico="search"></span><span>Search</span></button>
+</nav>
 <div id="toast" class="toast"></div>
 
 <script src="src/bytes.js"></script>

@@ -512,13 +512,22 @@
     let h = '';
     h += '<div class="sectionhead"><div><h2>Device lab</h2>' +
       '<p>Pick any box and look inside it: interfaces, routes, neighbours, services, live activity — and a shell that answers real commands.</p></div>' +
-      '<div class="seg">' + Object.keys(TOPO).map((id) =>
+      '<div class="seg only-wide">' + Object.keys(TOPO).map((id) =>
         '<button data-act="lab-topo" data-v="' + id + '" class="' + (S.lab.topo === id ? 'on' : '') + '">' + esc(TAB_LABEL[id] || id) + '</button>').join('') + '</div></div>';
+
+    // phone pickers: one dropdown for the network, one for the device
+    h += '<div class="pickers only-narrow">' +
+      '<label><span>Network</span><select id="topopick">' +
+      Object.keys(TOPO).map((id) => '<option value="' + id + '"' + (S.lab.topo === id ? ' selected' : '') + '>' + esc(TAB_LABEL[id] || id) + '</option>').join('') +
+      '</select></label>' +
+      '<label><span>Device</span><select id="devpick">' +
+      topo.devices.map((x) => '<option value="' + x.id + '"' + (x.id === d.id ? ' selected' : '') + '>' + esc(x.label) + '</option>').join('') +
+      '</select></label></div>';
 
     h += '<div class="labgrid">';
 
     // device list
-    h += '<div class="panel"><div class="hd"><span>' + esc(topo.label) + '</span></div><div class="bd" style="padding:8px">' +
+    h += '<div class="panel devpanel"><div class="hd"><span>' + esc(topo.label) + '</span></div><div class="bd" style="padding:8px">' +
       '<div class="devlist">' + topo.devices.map((x) => {
         const n = activity(S.lab.topo === 'home' ? 'home' : S.lab.topo).filter((p) => p.src === x.id || p.dst === x.id).length;
         return '<button class="devrow' + (x.id === d.id ? ' on' : '') + '" data-act="lab-device" data-id="' + x.id + '">' +
@@ -538,11 +547,12 @@
       (ICON[d.kind] || ICON.server) + '</span>' +
       '<div style="flex:1;min-width:0"><div style="font-size:16.5px;font-weight:650;letter-spacing:-.02em">' + esc(d.label) + '</div>' +
       '<div style="font-size:12px;color:var(--muted)">' + esc(d.role) + ' · ' + esc(d.ip || 'layer 2 only') + '</div></div>' +
-      '<span class="chip mono">' + esc(d.mac) + '</span></div>';
-    h += '<div class="tabs">' + [['overview', 'Overview'], ['cli', 'Command line'], ['interfaces', 'Interfaces'], ['routes', 'Routing'], ['arp', 'ARP'], ['services', 'Services'], ['activity', 'Activity'], ['trace', 'Trace path']]
-      .map(([id, label]) => {
+      '<span class="chip mono devmac">' + esc(d.mac) + '</span></div>';
+    h += '<div class="tabs">' + [['overview', 'Overview', 'Info'], ['cli', 'Command line', 'Shell'], ['interfaces', 'Interfaces', 'Ports'], ['routes', 'Routing', 'Routes'], ['arp', 'ARP', 'ARP'], ['services', 'Services', 'Doors'], ['activity', 'Activity', 'Traffic'], ['trace', 'Trace path', 'Path']]
+      .map(([id, label, short]) => {
         const disabled = (id === 'services' && !servicesOf(d).length) ? true : false;
-        return '<button data-act="lab-tab" data-t="' + id + '" class="' + (tab === id ? 'on' : '') + '"' + (disabled ? ' style="opacity:.45"' : '') + '>' + label + '</button>';
+        return '<button data-act="lab-tab" data-t="' + id + '" class="' + (tab === id ? 'on' : '') + '"' + (disabled ? ' style="opacity:.45"' : '') + '>' +
+          '<span class="only-wide">' + label + '</span><span class="only-narrow">' + short + '</span></button>';
       }).join('') + '</div>';
 
     if (tab === 'overview') h += overviewTab(topo, d);
@@ -579,7 +589,7 @@
     });
     const peerList = Object.entries(peers).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    let h = '<div class="bd" style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px">';
+    let h = '<div class="bd ovgrid">';
     h += '<div><dl class="kv">' +
       '<dt>Role</dt><dd>' + esc(d.role) + '</dd>' +
       '<dt>Hostname</dt><dd>' + esc(hostnameOf(d)) + '</dd>' +
@@ -598,7 +608,7 @@
     if (peerList.length) {
       h += '<div style="display:flex;flex-direction:column;gap:5px">' + peerList.map(([nm, n]) => {
         const w = Math.round((n / peerList[0][1]) * 100);
-        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="flex:0 0 130px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nm) + '</span>' +
+        return '<div class="peerrow" style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="flex:0 0 130px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nm) + '</span>' +
           '<span style="flex:1;height:5px;border-radius:5px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + w + '%;background:var(--accent);border-radius:5px"></i></span>' +
           '<span class="mono" style="color:var(--muted);font-size:10.5px">' + n + '</span></div>';
       }).join('') + '</div>';

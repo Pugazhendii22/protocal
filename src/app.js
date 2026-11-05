@@ -13,6 +13,7 @@
     const scrollTop = view.scrollTop;
     U.renderSidebar();
     U.renderTopbar();
+    U.renderTabs();
 
     if (S.view === 'tour') {
       view.innerHTML = root.PE_TOUR.render();
@@ -75,6 +76,7 @@
       case 'menu':
         S.menu = !S.menu;
         document.getElementById('sidebar').classList.toggle('open', S.menu);
+        document.getElementById('scrim').classList.toggle('on', S.menu);
         break;
 
       case 'view':
@@ -305,6 +307,25 @@
       inp.value = '';
       root.PE_LAB.submit(cmd);
     }
+  });
+
+  document.getElementById('scrim').addEventListener('click', () => {
+    S.menu = false;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('scrim').classList.remove('on');
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && S.menu) {
+      S.menu = false;
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('scrim').classList.remove('on');
+    }
+  });
+
+  document.addEventListener('change', (ev) => {
+    const t = ev.target;
+    if (t.id === 'topopick') { S.lab.topo = t.value; S.lab.device = null; S.lab.tab = 'overview'; root.PE_LAB.cliReset(); render(); }
+    else if (t.id === 'devpick') { S.lab.device = t.value; root.PE_LAB.cliReset(); render(); }
   });
 
   document.addEventListener('input', (ev) => {

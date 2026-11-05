@@ -149,7 +149,9 @@
   function layoutPx(topo, w, h) {
     const key = topo.id + ':' + Math.round(w) + 'x' + Math.round(h);
     if (pxCache[key]) return pxCache[key];
-    const MX = 116, MY = 62;           // node footprint incl. label, in px
+    // phones get a slightly smaller footprint so the whole map still fits across
+    const narrow = w < 520;
+    const MX = narrow ? 106 : 116, MY = narrow ? 82 : 62;   // node footprint incl. label, in px
     const pts = topo.devices.map((d) => ({
       id: d.id,
       x: (Math.max(11, Math.min(86, d.x)) / 100) * w,
@@ -174,6 +176,12 @@
       }
       clamp();
     }
+    // if the solver squeezed everything into part of the canvas, centre it
+    const ys = pts.map((p) => p.y);
+    const top = Math.min(...ys), bot = Math.max(...ys);
+    const slack = (h - (bot - top)) / 2 - top;
+    if (slack > 18) pts.forEach((p) => { p.y = Math.min(h - MY / 2 - 4, Math.max(MY / 2 + 4, p.y + Math.min(slack, 60))); });
+
     const out = {};
     pts.forEach((p) => { out[p.id] = p; });
     pxCache[key] = out;
@@ -260,8 +268,24 @@
     tag.style.color = color;
     tag.style.borderColor = color + '55';
     tag.textContent = label || 'packet';
-    tag.style.transform = 'translate(' + (pts[0].x + 12) + 'px,' + (pts[0].y - 30) + 'px)';
     layer.appendChild(tag);
+
+    // keep the little protocol tag inside the picture: flip it left near the
+    // right edge and slide it down near the top edge
+    const canW = layer.clientWidth || 640;
+    const canH = layer.clientHeight || 424;
+    function placeTag(x, y) {
+      const tw = tag.offsetWidth || 64;
+      const th = tag.offsetHeight || 20;
+      let tx = x + 12;
+      if (tx + tw > canW - 4) tx = x - 12 - tw;
+      if (tx < 4) tx = 4;
+      let ty = y - 30;
+      if (ty < 4) ty = y + 14;
+      if (ty + th > canH - 4) ty = canH - 4 - th;
+      tag.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+    }
+    placeTag(pts[0].x, pts[0].y);
 
     // dropped packets stop two-thirds of the way along, wherever that is
     const total = pts.length - 1;
@@ -282,7 +306,7 @@
       const x = a.x + (b.x - a.x) * ease;
       const y = a.y + (b.y - a.y) * ease;
       dot.style.transform = 'translate(' + (x - 7) + 'px,' + (y - 7) + 'px)';
-      if (tag && tag.isConnected) tag.style.transform = 'translate(' + (x + 12) + 'px,' + (y - 30) + 'px)';
+      if (tag && tag.isConnected) placeTag(x, y);
       if (dropped && overall >= stopAt - 0.001) {
         dot.classList.add('dead');
         dot.textContent = '✕';
@@ -632,7 +656,7 @@
 
     const pips = lesson.steps.map((s, i) =>
       '<button class="pip' + (i === stepIdx ? ' active' : '') + (i < stepIdx ? ' done' : '') + '" data-act="step" data-i="' + i + '">' +
-      '<b>' + (i < stepIdx ? '✓' : i + 1) + '</b><span>' + esc(s.title) + '</span></button>').join('');
+      '<b>' + (i < stepIdx ? '✓' : i + 1) + '</b><span title="' + esc(s.title) + '">' + esc(s.title) + '</span></button>').join('');
 
     const nextLesson = U.LESSONS[U.LESSONS.indexOf(lesson) + 1];
     const atEnd = stepIdx === lesson.steps.length - 1;

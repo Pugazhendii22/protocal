@@ -608,6 +608,8 @@ table.grid td.hi{color:var(--text);font-weight:600}
 .toast.on{opacity:1;transform:translate(-50%,0)}
 
 .hide-sm{display:inline}
+.scrim{position:fixed;inset:0;background:rgba(15,23,41,.36);z-index:85;opacity:0;pointer-events:none;transition:opacity .2s;display:none}
+@media (max-width:1020px){.scrim{display:block}}
 
 /* ============================================================
    responsive
@@ -627,10 +629,11 @@ table.grid td.hi{color:var(--text);font-weight:600}
   :root{--sbw:0px}
   .app{grid-template-columns:minmax(0,1fr)}
   .sidebar{
-    position:fixed;left:0;top:0;bottom:0;width:288px;z-index:60;transform:translateX(-102%);
+    position:fixed;left:0;top:0;bottom:0;width:288px;z-index:90;transform:translateX(-102%);
     transition:transform .22s ease;box-shadow:var(--shadow-lg)
   }
   .sidebar.open{transform:none}
+  .scrim.on{opacity:1;pointer-events:auto}
   .menubtn{display:grid}
   .labgrid{grid-template-columns:minmax(0,1fr)}
   .view{padding:18px 16px 90px}
@@ -675,16 +678,187 @@ table.grid td.hi{color:var(--text);font-weight:600}
   *,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}
 }
 
+.side-foot{flex-wrap:wrap;gap:7px}
+.side-foot .simplebtn{order:-1;width:100%;justify-content:center}
+
+/* ============================================================
+   mobile (<=760px) — the phone layout is the primary one
+   ============================================================ */
+.only-narrow{display:none}
+.tabbar{display:none}
+@media (max-width:1020px){
+  /* bottom tab bar */
+  .tabbar{
+    display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;z-index:80;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:5px 4px calc(5px + env(safe-area-inset-bottom,0px))
+  }
+  .tabbar button{
+    display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border-radius:10px;
+    font-size:10.5px;font-weight:650;color:var(--muted);min-height:48px;justify-content:center
+  }
+  .tabbar button .ti{font-size:17px;line-height:1}
+  .tabbar button:active{background:var(--accent-soft);color:var(--accent)}
+  .tabbar button.on{color:var(--accent)}
+  .tabbar button.on .ti{background:var(--accent-soft);border-radius:9px}
+  .tabbar .ti{display:grid;place-items:center;width:34px;height:26px}
+  .topbar .btn.sm:not(.hide-sm){display:none}
+}
+
+@media (max-width:760px){
+  .only-wide{display:none!important}
+  .only-narrow{display:inline-flex}
+
+  /* type scale for phones */
+  body{font-size:14.5px}
+  h1{font-size:23px;line-height:1.25;letter-spacing:-.02em}
+  h2{font-size:19px}
+  .lead{font-size:14.5px;line-height:1.6;margin:8px 0 16px}
+  .lesson-head .t1{font-size:22px}
+  .lesson-head .t2{font-size:14px}
+  .explain{padding:15px 14px;border-radius:12px}
+  .explain h3{font-size:19px}
+  .explain .sub{font-size:13.5px}
+  .qa{padding:11px 12px;margin-top:14px}
+  .qa p{font-size:14.5px;line-height:1.62}
+  .plainlist li{font-size:14.5px;line-height:1.55}
+  .term{font-size:13px}
+  .sectionhead h2{font-size:19px}
+  .sectionhead p{font-size:13.5px}
+  .panel > .hd{padding:10px 13px;font-size:11.5px}
+  .panel > .bd{padding:13px}
+
+  /* any hard-coded two-column block becomes one column on a phone */
+  [style*="minmax(0,1fr) minmax(0,1fr)"],
+  [style*="minmax(0,1.15fr)"]{grid-template-columns:1fr!important}
+
+  /* comfortable tap targets */
+  .btn{padding:11px 14px;font-size:13.5px;min-height:44px}
+  .btn.sm{padding:9px 12px;font-size:12.5px;min-height:38px}
+  .icobtn{width:42px;height:42px}
+  .icobtn.menubtn{display:grid}
+  .chip{padding:5px 10px;min-height:30px}
+  button.chip{min-height:38px}
+  .navitem{padding:11px 10px;font-size:14px;min-height:44px}
+  /* eight tabs won't fit on a phone: use a 4x2 grid, every cell a full tap target */
+  .tabs{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;overflow:visible;padding:4px;background:var(--panel3);border:1px solid var(--line);border-radius:12px;margin:0 12px 12px}
+  .tabs button{padding:11px 4px;font-size:11.5px;border:0!important;border-radius:8px;min-height:44px;background:transparent;justify-content:center;text-align:center}
+  .tabs button.on{background:#fff;color:var(--accent);box-shadow:var(--shadow);font-weight:750}
+  .seg button{min-height:36px;padding:8px 10px}
+  .opt{padding:13px;font-size:14px;min-height:52px}
+
+  /* topbar: essentials only */
+  .topbar{padding:9px 12px;gap:8px}
+  .crumbs{font-size:13px;min-width:0;flex:1;overflow:hidden}
+  .crumbs .hint{display:none}
+  .crumbs b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;max-width:100%}
+
+  /* phone order: read the idea first, then watch the packets */
+  .col-explain{order:1}
+  .col-net{order:2}
+
+  /* lesson chrome */
+  .view{padding:14px 12px 108px}
+  .pips{
+    flex-wrap:nowrap;overflow-x:auto;gap:6px;margin:0 -12px 10px;padding:2px 12px 12px;
+    scrollbar-width:none;-ms-overflow-style:none;scroll-snap-type:x proximity
+  }
+  .pips::-webkit-scrollbar{display:none}
+  .pip{flex:0 0 auto;padding:6px 11px 6px 6px;scroll-snap-align:center}
+  .pip span{max-width:150px;font-size:12.5px;white-space:normal;line-height:1.22;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .lesson-head .chip{font-size:11px;padding:4px 9px}
+  .lesson-head > div{min-width:0!important}
+  .goals{flex-wrap:wrap;gap:6px;margin-top:10px}
+  .pip b{width:20px;height:20px;font-size:10.5px}
+  .lessonnav{bottom:calc(58px + env(safe-area-inset-bottom,0px));margin:14px -12px -108px;padding:10px 12px;gap:8px}
+  .lessonnav .lbl{font-size:11.5px;width:100%}
+  .lessonnav .track{max-width:none;order:3;width:100%}
+  .lessonnav .btn{min-height:42px}
+
+  /* diagram */
+  .canvaswrap{padding:6px}
+  /* fit the whole map on the phone: no sideways panning, nothing cut off */
+  .canvas{height:474px;min-width:0;width:100%}
+  .canvaswrap{overflow-x:hidden}
+  .node{padding:5px 7px;border-radius:10px;min-width:46px;max-width:86px}
+  .node .bx{width:26px;height:26px;border-radius:8px}
+  .node .bx svg{width:15px;height:15px}
+  .node .bx svg *{stroke-width:2.15}
+  .node.dim .bx{background:#eef2f9;color:#7a8aa2}
+  .node.dim .nm{color:#5f6e86}
+  .node .nm{font-size:9.5px;max-width:74px;line-height:1.2}
+  .node .ip{display:none}
+  .pkttag{font-size:9.5px;padding:1px 4px}
+  .playbar{padding:8px 10px;gap:6px}
+  .playbar .btn{min-height:40px}
+  .routecrumb{padding:8px 12px;font-size:11.5px;gap:5px}
+  .rc-lab{font-size:9.5px;width:100%}
+
+  /* device lab: dropdowns, no clipped scrollers */
+  .pickers{display:flex;gap:9px;margin:0 0 12px}
+  .pickers label{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+  .pickers span{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);font-weight:750}
+  .pickers select{
+    width:100%;appearance:none;-webkit-appearance:none;
+    background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 11px center;
+    border:1px solid var(--line2);border-radius:11px;padding:12px 32px 12px 12px;font-size:14px;font-weight:600;color:var(--text);
+    box-shadow:var(--shadow);min-height:46px
+  }
+  .labgrid{display:block}
+  .devpanel{display:none}
+  .cli .out{height:224px;font-size:11.5px}
+  .cli input{font-size:15px}
+  .cli .hints button{min-height:34px;font-size:11px}
+  .kv{grid-template-columns:112px minmax(0,1fr);font-size:12.5px}
+  .kv dd{font-size:11.5px}
+
+  /* packet list: let the info line use two lines instead of cutting it */
+  .pcaplist{max-height:none;overflow-x:hidden}
+  table.pcap td{white-space:normal}
+  table.pcap td:nth-child(6){font-size:11.5px;line-height:1.35;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  /* wide tables scroll sideways instead of squashing */
+  .pcaplist{max-height:none}
+  table.grid{overflow-x:auto}
+  table.grid td,table.grid th{white-space:normal}
+  .datacard{overflow-x:auto}
+
+  /* device detail on a phone */
+  .ovgrid{display:block!important}
+  .ovgrid > div + div{margin-top:16px}
+  .kv{grid-template-columns:1fr!important;gap:0!important}
+  .kv dt{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:700;margin-top:9px}
+  .kv dd{font-size:12.5px;white-space:normal;overflow-wrap:anywhere}
+  .peerrow span:first-child{flex:0 0 96px!important}
+  .devmac{font-size:9.5px;padding:2px 6px}
+  .pickers + .labgrid{margin-top:0}
+}
+
+@media (max-width:420px){
+  .tabbar button{font-size:10px}
+  .pips .pip span{max-width:120px}
+  .canvas{height:490px}
+}
+
 </style>
 </head>
 <body>
 <div class="app">
   <aside class="sidebar" id="sidebar"></aside>
+  <div id="scrim" class="scrim"></div>
   <div class="main">
     <header class="topbar" id="topbar"></header>
     <div id="view" class="view scroll"></div>
   </div>
 </div>
+<nav id="tabbar" class="tabbar">
+  <button data-act="view" data-v="tour" data-tab="tour"><span class="ti" data-ico="home"></span><span>Home</span></button>
+  <button data-act="menu" data-tab="lessons"><span class="ti" data-ico="list"></span><span>Lessons</span></button>
+  <button data-act="view" data-v="lab" data-tab="lab"><span class="ti" data-ico="grid"></span><span>Devices</span></button>
+  <button data-act="view" data-v="exam" data-tab="exam"><span class="ti" data-ico="play"></span><span>Test</span></button>
+  <button data-act="palette" data-tab="search"><span class="ti" data-ico="search"></span><span>Search</span></button>
+</nav>
 <div id="toast" class="toast"></div>
 
 <script>
@@ -6119,6 +6293,8 @@ table.grid td.hi{color:var(--text);font-weight:600}
     h += '</div></div>';
 
     h += '<div class="side-foot"><span><b style="color:var(--text2)">' + o.pct + '%</b> complete</span>' +
+      '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' simplebtn" data-act="simple" title="Short, easy sentences and word help">' +
+      (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
       '<button class="btn sm ghost" data-act="reset">Reset progress</button></div>';
     document.getElementById('sidebar').innerHTML = h;
     document.getElementById('sidebar').classList.toggle('open', S.menu);
@@ -6132,6 +6308,20 @@ table.grid td.hi{color:var(--text);font-weight:600}
       '<path d="M10.5 21 21 10.5M11 22h10" stroke="#3d6dab" stroke-width="1.3" stroke-linecap="round"/></svg>';
   }
 
+  function renderTabs() {
+    const bar = document.getElementById('tabbar');
+    if (!bar) return;
+    bar.querySelectorAll('[data-ico]').forEach((sp) => {
+      if (sp.firstChild) return;
+      const svg = ICON[sp.getAttribute('data-ico')] || '';
+      sp.innerHTML = svg.replace('<svg', '<svg width="20" height="20"');
+    });
+    const active = S.view === 'lab' ? 'lab' : S.view === 'exam' ? 'exam' : S.view === 'tour' ? 'tour' : S.view === 'lesson' ? 'lessons' : '';
+    bar.querySelectorAll('[data-tab]').forEach((b) => {
+      b.classList.toggle('on', b.getAttribute('data-tab') === active);
+    });
+  }
+
   function renderTopbar() {
     let crumbs = '';
     let right = '<button class="btn sm ghost hide-sm" data-act="palette" title="Search everything (Ctrl+K)" style="gap:7px">' +
@@ -6139,12 +6329,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
       '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>';
 
     if (S.view === 'tour') {
-      crumbs = '<b>Home</b><span style="color:var(--dim)">·</span><span>' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
+      crumbs = '<b>Home</b><span class="hint" style="color:var(--dim)">·</span><span class="hint">' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
     } else if (S.view === 'lesson') {
       const l = byId[S.lessonId];
       const t = trackOf[l.track];
-      crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
-        '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
+      crumbs = '<span class="hint" style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
+        '<span class="hint" style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
       right = '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' hide-sm" data-act="simple" title="Short, easy sentences and word help">' +
           (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
         '<div class="seg" style="margin-right:2px">' +
@@ -6154,7 +6344,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
         '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>' +
         '<button class="btn sm" data-act="view" data-v="lab">Explore devices</button>';
     } else if (S.view === 'lab') {
-      crumbs = '<b>Explore devices</b><span style="color:var(--dim)">·</span><span>click any box to open it</span>';
+      crumbs = '<b>Explore devices</b><span class="hint" style="color:var(--dim)">·</span><span class="hint">click any box to open it</span>';
     } else if (S.view === 'library') {
       crumbs = '<b>Protocol guide</b>';
     } else if (S.view === 'sources') {
@@ -6176,7 +6366,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
 
   root.PE_UI = {
     S, LESSONS, TRACKS, byId, trackOf, esc, $, $$, pad, fmtB, fmtT, ICON,
-    toast, save, load, renderSidebar, renderTopbar,
+    toast, save, load, renderSidebar, renderTopbar, renderTabs,
     lessonProgress, isDone, trackStats, overall, markStep,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
@@ -6642,7 +6832,9 @@ table.grid td.hi{color:var(--text);font-weight:600}
   function layoutPx(topo, w, h) {
     const key = topo.id + ':' + Math.round(w) + 'x' + Math.round(h);
     if (pxCache[key]) return pxCache[key];
-    const MX = 116, MY = 62;           // node footprint incl. label, in px
+    // phones get a slightly smaller footprint so the whole map still fits across
+    const narrow = w < 520;
+    const MX = narrow ? 106 : 116, MY = narrow ? 82 : 62;   // node footprint incl. label, in px
     const pts = topo.devices.map((d) => ({
       id: d.id,
       x: (Math.max(11, Math.min(86, d.x)) / 100) * w,
@@ -6667,6 +6859,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
       }
       clamp();
     }
+    // if the solver squeezed everything into part of the canvas, centre it
+    const ys = pts.map((p) => p.y);
+    const top = Math.min(...ys), bot = Math.max(...ys);
+    const slack = (h - (bot - top)) / 2 - top;
+    if (slack > 18) pts.forEach((p) => { p.y = Math.min(h - MY / 2 - 4, Math.max(MY / 2 + 4, p.y + Math.min(slack, 60))); });
+
     const out = {};
     pts.forEach((p) => { out[p.id] = p; });
     pxCache[key] = out;
@@ -6753,8 +6951,24 @@ table.grid td.hi{color:var(--text);font-weight:600}
     tag.style.color = color;
     tag.style.borderColor = color + '55';
     tag.textContent = label || 'packet';
-    tag.style.transform = 'translate(' + (pts[0].x + 12) + 'px,' + (pts[0].y - 30) + 'px)';
     layer.appendChild(tag);
+
+    // keep the little protocol tag inside the picture: flip it left near the
+    // right edge and slide it down near the top edge
+    const canW = layer.clientWidth || 640;
+    const canH = layer.clientHeight || 424;
+    function placeTag(x, y) {
+      const tw = tag.offsetWidth || 64;
+      const th = tag.offsetHeight || 20;
+      let tx = x + 12;
+      if (tx + tw > canW - 4) tx = x - 12 - tw;
+      if (tx < 4) tx = 4;
+      let ty = y - 30;
+      if (ty < 4) ty = y + 14;
+      if (ty + th > canH - 4) ty = canH - 4 - th;
+      tag.style.transform = 'translate(' + tx + 'px,' + ty + 'px)';
+    }
+    placeTag(pts[0].x, pts[0].y);
 
     // dropped packets stop two-thirds of the way along, wherever that is
     const total = pts.length - 1;
@@ -6775,7 +6989,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
       const x = a.x + (b.x - a.x) * ease;
       const y = a.y + (b.y - a.y) * ease;
       dot.style.transform = 'translate(' + (x - 7) + 'px,' + (y - 7) + 'px)';
-      if (tag && tag.isConnected) tag.style.transform = 'translate(' + (x + 12) + 'px,' + (y - 30) + 'px)';
+      if (tag && tag.isConnected) placeTag(x, y);
       if (dropped && overall >= stopAt - 0.001) {
         dot.classList.add('dead');
         dot.textContent = '✕';
@@ -7125,7 +7339,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
 
     const pips = lesson.steps.map((s, i) =>
       '<button class="pip' + (i === stepIdx ? ' active' : '') + (i < stepIdx ? ' done' : '') + '" data-act="step" data-i="' + i + '">' +
-      '<b>' + (i < stepIdx ? '✓' : i + 1) + '</b><span>' + esc(s.title) + '</span></button>').join('');
+      '<b>' + (i < stepIdx ? '✓' : i + 1) + '</b><span title="' + esc(s.title) + '">' + esc(s.title) + '</span></button>').join('');
 
     const nextLesson = U.LESSONS[U.LESSONS.indexOf(lesson) + 1];
     const atEnd = stepIdx === lesson.steps.length - 1;
@@ -7798,13 +8012,22 @@ table.grid td.hi{color:var(--text);font-weight:600}
     let h = '';
     h += '<div class="sectionhead"><div><h2>Device lab</h2>' +
       '<p>Pick any box and look inside it: interfaces, routes, neighbours, services, live activity — and a shell that answers real commands.</p></div>' +
-      '<div class="seg">' + Object.keys(TOPO).map((id) =>
+      '<div class="seg only-wide">' + Object.keys(TOPO).map((id) =>
         '<button data-act="lab-topo" data-v="' + id + '" class="' + (S.lab.topo === id ? 'on' : '') + '">' + esc(TAB_LABEL[id] || id) + '</button>').join('') + '</div></div>';
+
+    // phone pickers: one dropdown for the network, one for the device
+    h += '<div class="pickers only-narrow">' +
+      '<label><span>Network</span><select id="topopick">' +
+      Object.keys(TOPO).map((id) => '<option value="' + id + '"' + (S.lab.topo === id ? ' selected' : '') + '>' + esc(TAB_LABEL[id] || id) + '</option>').join('') +
+      '</select></label>' +
+      '<label><span>Device</span><select id="devpick">' +
+      topo.devices.map((x) => '<option value="' + x.id + '"' + (x.id === d.id ? ' selected' : '') + '>' + esc(x.label) + '</option>').join('') +
+      '</select></label></div>';
 
     h += '<div class="labgrid">';
 
     // device list
-    h += '<div class="panel"><div class="hd"><span>' + esc(topo.label) + '</span></div><div class="bd" style="padding:8px">' +
+    h += '<div class="panel devpanel"><div class="hd"><span>' + esc(topo.label) + '</span></div><div class="bd" style="padding:8px">' +
       '<div class="devlist">' + topo.devices.map((x) => {
         const n = activity(S.lab.topo === 'home' ? 'home' : S.lab.topo).filter((p) => p.src === x.id || p.dst === x.id).length;
         return '<button class="devrow' + (x.id === d.id ? ' on' : '') + '" data-act="lab-device" data-id="' + x.id + '">' +
@@ -7824,11 +8047,12 @@ table.grid td.hi{color:var(--text);font-weight:600}
       (ICON[d.kind] || ICON.server) + '</span>' +
       '<div style="flex:1;min-width:0"><div style="font-size:16.5px;font-weight:650;letter-spacing:-.02em">' + esc(d.label) + '</div>' +
       '<div style="font-size:12px;color:var(--muted)">' + esc(d.role) + ' · ' + esc(d.ip || 'layer 2 only') + '</div></div>' +
-      '<span class="chip mono">' + esc(d.mac) + '</span></div>';
-    h += '<div class="tabs">' + [['overview', 'Overview'], ['cli', 'Command line'], ['interfaces', 'Interfaces'], ['routes', 'Routing'], ['arp', 'ARP'], ['services', 'Services'], ['activity', 'Activity'], ['trace', 'Trace path']]
-      .map(([id, label]) => {
+      '<span class="chip mono devmac">' + esc(d.mac) + '</span></div>';
+    h += '<div class="tabs">' + [['overview', 'Overview', 'Info'], ['cli', 'Command line', 'Shell'], ['interfaces', 'Interfaces', 'Ports'], ['routes', 'Routing', 'Routes'], ['arp', 'ARP', 'ARP'], ['services', 'Services', 'Doors'], ['activity', 'Activity', 'Traffic'], ['trace', 'Trace path', 'Path']]
+      .map(([id, label, short]) => {
         const disabled = (id === 'services' && !servicesOf(d).length) ? true : false;
-        return '<button data-act="lab-tab" data-t="' + id + '" class="' + (tab === id ? 'on' : '') + '"' + (disabled ? ' style="opacity:.45"' : '') + '>' + label + '</button>';
+        return '<button data-act="lab-tab" data-t="' + id + '" class="' + (tab === id ? 'on' : '') + '"' + (disabled ? ' style="opacity:.45"' : '') + '>' +
+          '<span class="only-wide">' + label + '</span><span class="only-narrow">' + short + '</span></button>';
       }).join('') + '</div>';
 
     if (tab === 'overview') h += overviewTab(topo, d);
@@ -7865,7 +8089,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     });
     const peerList = Object.entries(peers).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
-    let h = '<div class="bd" style="display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px">';
+    let h = '<div class="bd ovgrid">';
     h += '<div><dl class="kv">' +
       '<dt>Role</dt><dd>' + esc(d.role) + '</dd>' +
       '<dt>Hostname</dt><dd>' + esc(hostnameOf(d)) + '</dd>' +
@@ -7884,7 +8108,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     if (peerList.length) {
       h += '<div style="display:flex;flex-direction:column;gap:5px">' + peerList.map(([nm, n]) => {
         const w = Math.round((n / peerList[0][1]) * 100);
-        return '<div style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="flex:0 0 130px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nm) + '</span>' +
+        return '<div class="peerrow" style="display:flex;align-items:center;gap:8px;font-size:12px"><span style="flex:0 0 130px;color:var(--text2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(nm) + '</span>' +
           '<span style="flex:1;height:5px;border-radius:5px;background:var(--line);overflow:hidden"><i style="display:block;height:100%;width:' + w + '%;background:var(--accent);border-radius:5px"></i></span>' +
           '<span class="mono" style="color:var(--muted);font-size:10.5px">' + n + '</span></div>';
       }).join('') + '</div>';
@@ -8893,6 +9117,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const scrollTop = view.scrollTop;
     U.renderSidebar();
     U.renderTopbar();
+    U.renderTabs();
 
     if (S.view === 'tour') {
       view.innerHTML = root.PE_TOUR.render();
@@ -8955,6 +9180,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
       case 'menu':
         S.menu = !S.menu;
         document.getElementById('sidebar').classList.toggle('open', S.menu);
+        document.getElementById('scrim').classList.toggle('on', S.menu);
         break;
 
       case 'view':
@@ -9185,6 +9411,25 @@ table.grid td.hi{color:var(--text);font-weight:600}
       inp.value = '';
       root.PE_LAB.submit(cmd);
     }
+  });
+
+  document.getElementById('scrim').addEventListener('click', () => {
+    S.menu = false;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('scrim').classList.remove('on');
+  });
+  document.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Escape' && S.menu) {
+      S.menu = false;
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('scrim').classList.remove('on');
+    }
+  });
+
+  document.addEventListener('change', (ev) => {
+    const t = ev.target;
+    if (t.id === 'topopick') { S.lab.topo = t.value; S.lab.device = null; S.lab.tab = 'overview'; root.PE_LAB.cliReset(); render(); }
+    else if (t.id === 'devpick') { S.lab.device = t.value; root.PE_LAB.cliReset(); render(); }
   });
 
   document.addEventListener('input', (ev) => {

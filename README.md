@@ -170,3 +170,27 @@ editing anything in `src/`:
 ```bash
 node tools/build.js
 ```
+
+## Phone / mobile design (new)
+
+The phone layout is now a first-class design, not a squeeze of the desktop one.
+
+- **Bottom tab bar** (Home · Lessons · Devices · Test · Search) shows at `<=1020px`, with the active tab highlighted and every button 48px tall. The hamburger drawer still opens the full lesson list; it now closes on `Escape`, on a tap outside it (scrim), and covers the tab bar while open.
+- **Easy English is always reachable** on a phone: the topbar toggle is hidden there, so the switch sits at the bottom of the drawer as a full-width button.
+- **Device lab uses native dropdowns** on a phone (`Network` + `Device`) instead of a clipped horizontal scroller, and the eight device tabs become a 4x2 grid of 44px cells with short labels (Info / Shell / Ports / Routes / ARP / Doors / Traffic / Path).
+- **The diagram fits the screen.** Under 760px the canvas has no `min-width`: `layoutPx()` switches to a smaller node footprint (106x82) and the layout is vertically centred, so every device and label is visible with no sideways panning and no clipped `.pkttag` (the packet tag flips to the left of the dot near the right edge and slides down near the top).
+- **Reading order on a phone:** step text first, then the animated map, then packet flow, then the inspector.
+- **Type and targets scale up:** body 14.5px, 44px buttons, 42px icon buttons, wrapping step chips (2 lines) instead of "A name is not an…", and a scrolling step strip with 44px rows.
+- Wide tables wrap instead of squashing; the packet-info column gets two lines.
+
+### QA
+
+```
+node tools/build.js      # single-file build
+node tools/crawl.js      # link + routing crawl
+node tools/interact.js   # 47 click assertions
+node tools/audit.js      # DOM audit at 3 widths
+node tools/mobile.js     # NEW: phone gate at 320 / 390 / 820
+```
+
+`tools/mobile.js` fails if the page scrolls sideways, if the tab bar is missing or has sub-44px buttons, if the diagram is wider than its box, if the lab pickers are absent, or if the drawer will not open and close.

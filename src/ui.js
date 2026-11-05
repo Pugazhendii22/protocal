@@ -171,6 +171,8 @@
     h += '</div></div>';
 
     h += '<div class="side-foot"><span><b style="color:var(--text2)">' + o.pct + '%</b> complete</span>' +
+      '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' simplebtn" data-act="simple" title="Short, easy sentences and word help">' +
+      (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
       '<button class="btn sm ghost" data-act="reset">Reset progress</button></div>';
     document.getElementById('sidebar').innerHTML = h;
     document.getElementById('sidebar').classList.toggle('open', S.menu);
@@ -184,6 +186,20 @@
       '<path d="M10.5 21 21 10.5M11 22h10" stroke="#3d6dab" stroke-width="1.3" stroke-linecap="round"/></svg>';
   }
 
+  function renderTabs() {
+    const bar = document.getElementById('tabbar');
+    if (!bar) return;
+    bar.querySelectorAll('[data-ico]').forEach((sp) => {
+      if (sp.firstChild) return;
+      const svg = ICON[sp.getAttribute('data-ico')] || '';
+      sp.innerHTML = svg.replace('<svg', '<svg width="20" height="20"');
+    });
+    const active = S.view === 'lab' ? 'lab' : S.view === 'exam' ? 'exam' : S.view === 'tour' ? 'tour' : S.view === 'lesson' ? 'lessons' : '';
+    bar.querySelectorAll('[data-tab]').forEach((b) => {
+      b.classList.toggle('on', b.getAttribute('data-tab') === active);
+    });
+  }
+
   function renderTopbar() {
     let crumbs = '';
     let right = '<button class="btn sm ghost hide-sm" data-act="palette" title="Search everything (Ctrl+K)" style="gap:7px">' +
@@ -191,12 +207,12 @@
       '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>';
 
     if (S.view === 'tour') {
-      crumbs = '<b>Home</b><span style="color:var(--dim)">·</span><span>' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
+      crumbs = '<b>Home</b><span class="hint" style="color:var(--dim)">·</span><span class="hint">' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
     } else if (S.view === 'lesson') {
       const l = byId[S.lessonId];
       const t = trackOf[l.track];
-      crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
-        '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
+      crumbs = '<span class="hint" style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
+        '<span class="hint" style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
       right = '<button class="btn sm ' + (S.simple ? 'on' : 'ghost') + ' hide-sm" data-act="simple" title="Short, easy sentences and word help">' +
           (S.simple ? '✓ Easy English' : 'Easy English') + '</button>' +
         '<div class="seg" style="margin-right:2px">' +
@@ -206,7 +222,7 @@
         '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>' +
         '<button class="btn sm" data-act="view" data-v="lab">Explore devices</button>';
     } else if (S.view === 'lab') {
-      crumbs = '<b>Explore devices</b><span style="color:var(--dim)">·</span><span>click any box to open it</span>';
+      crumbs = '<b>Explore devices</b><span class="hint" style="color:var(--dim)">·</span><span class="hint">click any box to open it</span>';
     } else if (S.view === 'library') {
       crumbs = '<b>Protocol guide</b>';
     } else if (S.view === 'sources') {
@@ -228,7 +244,7 @@
 
   root.PE_UI = {
     S, LESSONS, TRACKS, byId, trackOf, esc, $, $$, pad, fmtB, fmtT, ICON,
-    toast, save, load, renderSidebar, renderTopbar,
+    toast, save, load, renderSidebar, renderTopbar, renderTabs,
     lessonProgress, isDone, trackStats, overall, markStep,
   };
 })(typeof window !== 'undefined' ? window : globalThis);
