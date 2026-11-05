@@ -18,8 +18,8 @@
     if (layouts[topo.id]) return layouts[topo.id];
     const pads = topo.devices.map((d) => ({
       id: d.id,
-      x: Math.max(9, Math.min(91, d.x)),
-      y: Math.max(11, Math.min(84, d.y)),
+      x: Math.max(11, Math.min(86, d.x)),
+      y: Math.max(12, Math.min(78, d.y)),
     }));
     const MINX = 17, MINY = 17;
     for (let iter = 0; iter < 260; iter++) {
@@ -43,8 +43,8 @@
         }
       }
       pads.forEach((p) => {
-        p.x = Math.max(9, Math.min(91, p.x));
-        p.y = Math.max(11, Math.min(84, p.y));
+        p.x = Math.max(11, Math.min(86, p.x));
+        p.y = Math.max(12, Math.min(78, p.y));
       });
     }
     const out = {};
@@ -514,8 +514,8 @@
     h += '<div class="pips">' + pips + '</div>';
 
     h += '<div class="lesson-grid">';
-    h += '<div>' + explainHTML(lesson, stepIdx) + '</div>';
-    h += '<div class="stack">';
+    h += '<div class="col-explain">' + explainHTML(lesson, stepIdx) + '</div>';
+    h += '<div class="col-net">';
 
     // canvas panel
     const crumb = routeCrumb(sess, stepIdx);
@@ -534,6 +534,9 @@
       '<div class="speed">' + [0.5, 1, 2].map((v) => '<button data-act="speed" data-v="' + v + '" class="' + (S.speed === v ? 'on' : '') + '">' + v + '×</button>').join('') + '</div>' +
       '</div></div>';
 
+    h += '</div></div>';   // end lesson-grid
+
+    h += '<div class="lesson-lower">';
     // pcap panel
     h += '<div class="panel"><div class="hd"><span>Packet flow</span>' +
       '<span class="mono" style="text-transform:none;letter-spacing:0;color:var(--muted)">' + visiblePackets(sess, S.step).length + ' of ' + sess.packets.length + '</span>' +
@@ -546,6 +549,8 @@
       '<span class="mono" style="text-transform:none;letter-spacing:0;color:var(--dim)">real headers · real checksums</span></div>' +
       '<div id="insp">' + inspectorHTML(selPacket) + '</div></div>';
 
+    h += '</div>';        // end lesson-lower
+
     // quiz + completion
     if (atEnd || S.peek) h += quizHTML(lesson);
 
@@ -557,7 +562,6 @@
       (nextLesson ? '<button class="btn primary" data-act="openLesson" data-id="' + nextLesson.id + '">Next: ' + esc(nextLesson.title) + ' ' + ICON.next.replace('<svg', '<svg width="13" height="13"') + '</button>' : '') +
       '</div></div></div>';
 
-    h += '</div></div>';
     return h;
   }
 
