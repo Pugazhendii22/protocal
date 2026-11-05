@@ -22,7 +22,9 @@
     const q = S.search.trim().toLowerCase();
     const list = D.PROTOCOLS.filter((p) => !q || (p.name + p.abbr + p.summary + p.rfc).toLowerCase().includes(q));
 
-    h += '<div class="cards">' + list.map((p) => {
+    const detail = sel ? protoDetail(sel) : '';
+    h += detail;
+    h += '<div class="cards" id="protocards">' + list.map((p) => {
       const c = protoColor(p);
       return '<button class="pcard" data-act="proto" data-id="' + p.id + '"' + (sel && sel.id === p.id ? ' style="border-color:' + c + '88"' : '') + '>' +
         '<div class="top"><span class="ab" style="background:' + c + '">' + esc(p.abbr) + '</span>' +
@@ -36,9 +38,13 @@
 
     if (!list.length) h += '<div class="empty">Nothing matches that filter.</div>';
 
-    if (sel) {
-      const c = protoColor(sel);
-      h += '<div class="panel" style="margin-top:16px"><div class="hd"><span style="color:' + c + '">' + esc(sel.name) + '</span>' +
+    return h;
+  }
+
+  function protoDetail(sel) {
+    const c = protoColor(sel);
+    let d = '';
+    d += '<div class="panel" id="proto-detail" style="margin-bottom:16px"><div class="hd"><span style="color:' + c + '">' + esc(sel.name) + '</span>' +
         '<span class="chip mono" style="text-transform:none;letter-spacing:0">' + esc(sel.rfc) + '</span>' +
         '<span class="spacer"></span><button class="btn sm ghost" data-act="proto" data-id="">Close</button></div>' +
         '<div class="bd" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px">' +
@@ -51,9 +57,9 @@
         '<div class="datacard"><table><tbody>' + sel.fields.map((f) => '<tr><td style="font-family:var(--mono);font-size:11.5px">' + esc(f) + '</td></tr>').join('') + '</tbody></table>' +
         '<div class="nt">Layer ' + sel.layer + ' · ' + (LAYER_NAMES[Math.round(sel.layer)] || '') + ' · ports ' + esc(sel.port) + '</div></div>' +
         '</div></div></div>';
-    }
-    return h;
+    return d;
   }
+
 
   function glossary() {
     const all = [];

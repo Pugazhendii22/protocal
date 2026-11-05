@@ -169,7 +169,7 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}
 .panel + .panel{margin-top:16px}
 .panel > .hd{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);
   font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;
   background:#fcfdff;border-radius:var(--r) var(--r) 0 0
 }
@@ -190,9 +190,9 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .pcard .sm{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.55}
 .pcard .ft{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
 .pcard .ft span{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 7px;background:var(--panel2)}
-.gl{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;box-shadow:var(--shadow)}
+.gl{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;box-shadow:var(--shadow);min-width:0;overflow-wrap:anywhere}
 .gl b{font-size:13.5px}
-.gl p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55}
+.gl p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
 .searchbox{display:flex;align-items:center;gap:9px;border:1px solid var(--line2);background:#fff;border-radius:11px;padding:9px 13px;max-width:440px;box-shadow:var(--shadow)}
 .searchbox input{flex:1;background:none;border:0;outline:0;color:var(--text);font-size:14px;font-family:inherit}
 .searchbox svg{color:var(--dim)}
@@ -247,6 +247,7 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .col-explain,.col-net{min-width:0}
 .col-net .panel + .panel{margin-top:16px}
 @media (min-width:1241px){.col-net{position:sticky;top:64px}}
+.topbar .seg button{min-width:30px}
 .lesson-lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}
 .lesson-lower > .panel{margin-top:0}
 .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -289,7 +290,8 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 /* ============================================================
    canvas / diagram
    ============================================================ */
-.canvaswrap{padding:12px}
+.canvaswrap{padding:12px;overflow-x:auto}
+.canvaswrap::-webkit-scrollbar{height:8px}
 .canvas{
   position:relative;width:100%;height:424px;border-radius:12px;overflow:hidden;
   background:
@@ -365,7 +367,8 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 /* ============================================================
    packet table
    ============================================================ */
-.pcaplist{max-height:290px;overflow:auto}
+.pcaplist{max-height:290px;overflow:auto;max-width:100%}
+table.pcap{min-width:0}
 table.pcap{width:100%;border-collapse:collapse;font-size:12px}
 table.pcap th{
   position:sticky;top:0;background:#f7f9fd;text-align:left;padding:8px 10px;font-size:10px;
@@ -605,18 +608,30 @@ table.grid td.hi{color:var(--text);font-weight:600}
   .goals{display:none}
   .lesson-head{margin-bottom:10px}
   .pips .pip span{max-width:120px}
+  .topbar .seg{display:none}
+  .panel > .hd .chip.mono{display:none}
+  .routecrumb{font-size:11.5px;gap:6px}
+  .rc-hint{margin-left:0;width:100%}
   .lesson-head .t1{font-size:23px}
   .explain{padding:17px 16px}
   .explain h3{font-size:20px}
-  .canvas{height:330px}
+  /* a phone cannot fit a 10-node network: keep the diagram at a readable
+     size and let the reader swipe it, instead of crushing every label */
+  .canvas{height:340px;min-width:640px}
+  .canvaswrap{padding:8px}
   .node{min-width:52px;padding:5px 7px}
   .node .nm{font-size:10px;max-width:80px}
   .node .bx{width:28px;height:28px}
   .node .ip{display:none}
   .canvas .hint{display:none}
   .hide-sm{display:none}
-  .c-s,.c-d{width:90px}
-  table.pcap .info{max-width:200px}
+  /* on phones the addresses are too wide: keep No/Proto/Info, hide the two IP columns */
+  table.pcap colgroup{display:none}
+  table.pcap{table-layout:auto;width:100%}
+  table.pcap th:nth-child(3),table.pcap th:nth-child(4),table.pcap td:nth-child(3),table.pcap td:nth-child(4){display:none}
+  table.pcap th,table.pcap td{padding:6px 7px}
+  table.pcap .info{max-width:210px}
+  .pcaplist{max-height:none}
   .qstem{font-size:19px}
   .lessonnav .lbl{font-size:12px}
 }

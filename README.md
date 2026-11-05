@@ -132,7 +132,14 @@ auto-play.
 node tools/build.js     # regenerate the single-file bundle
 node tools/smoke.js     # boot counts, IPv6 layers, lab shell, sources, single file
 node tools/crawl.js     # walks all 37 lessons x 158 steps, 10 topologies x 63 devices x 8 tabs,
-                        # 26 shell commands per topology, exam mode, timeline, palette → expects 0 errors
+                        # 26 shell commands per topology, exam mode, timeline, palette,
+                        # and proves every packet is routed over links that exist → 0 errors
+node tools/interact.js  # clicks things: 47 assertions that each control actually changes
+                        # state (step nav, packet select, field highlight, quiz, CLI, exam,
+                        # palette, drawer, persistence, reset)
+node tools/audit.js     # screenshots every view + DOM audit: stray "undefined/NaN",
+                        # horizontal overflow, clipped text, dead links, unhandled
+                        # data-act handlers, and 390/820px layouts → 0 issues
 ```
 
 Current inventory: **8 tracks / 37 lessons / 158 steps / 46 quiz questions /

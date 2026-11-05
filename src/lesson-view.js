@@ -143,17 +143,60 @@
     return out;
   }
 
+  /* px-space relaxation, run against the measured canvas so it works at any width */
+  const pxCache = {};
+  function layoutPx(topo, w, h) {
+    const key = topo.id + ':' + Math.round(w) + 'x' + Math.round(h);
+    if (pxCache[key]) return pxCache[key];
+    const MX = 116, MY = 62;           // node footprint incl. label, in px
+    const pts = topo.devices.map((d) => ({
+      id: d.id,
+      x: (Math.max(11, Math.min(86, d.x)) / 100) * w,
+      y: (Math.max(12, Math.min(78, d.y)) / 100) * h,
+    }));
+    const clamp = () => pts.forEach((p) => {
+      p.x = Math.max(MX / 2 + 6, Math.min(w - MX / 2 - 6, p.x));
+      p.y = Math.max(MY / 2 + 4, Math.min(h - MY / 2 - 4, p.y));
+    });
+    clamp();
+    for (let it = 0; it < 220; it++) {
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const a = pts[i], b = pts[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const ox = MX - Math.abs(dx), oy = MY - Math.abs(dy);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) { const s = (dx >= 0 ? 1 : -1) * ox / 2; a.x -= s; b.x += s; }
+            else { const s = (dy >= 0 ? 1 : -1) * oy / 2; a.y -= s; b.y += s; }
+          }
+        }
+      }
+      clamp();
+    }
+    const out = {};
+    pts.forEach((p) => { out[p.id] = p; });
+    pxCache[key] = out;
+    return out;
+  }
+
+  function applyNodePositions(topo, pos) {
+    const cv = document.getElementById('cv');
+    if (!cv) return;
+    cv.querySelectorAll('.node[data-dev]').forEach((n) => {
+      const p = pos[n.getAttribute('data-dev')];
+      if (!p) return;
+      n.style.left = p.x + 'px';
+      n.style.top = p.y + 'px';
+    });
+  }
+
   function drawLinks(sess) {
     const cv = document.getElementById('cv');
     const svg = document.getElementById('cvsvg');
     if (!cv || !svg) return { pos: {} };
     const r = cv.getBoundingClientRect();
-    const pos = {};
-    const lay = layoutFor(sess.topo);
-    sess.topo.devices.forEach((d) => {
-      const p = lay[d.id] || { x: d.x, y: d.y };
-      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
-    });
+    const pos = layoutPx(sess.topo, r.width, r.height);
+    applyNodePositions(sess.topo, pos);
     const lines = (sess.topo.links || []).map(([a, b]) => {
       if (!pos[a] || !pos[b]) return '';
       return '<line x1="' + pos[a].x.toFixed(1) + '" y1="' + pos[a].y.toFixed(1) +
@@ -260,12 +303,7 @@
     const cv = document.getElementById('cv');
     if (!cv) return;
     const r = cv.getBoundingClientRect();
-    const pos = {};
-    const lay = layoutFor(sess.topo);
-    sess.topo.devices.forEach((d) => {
-      const p = lay[d.id] || { x: d.x, y: d.y };
-      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
-    });
+    const pos = layoutPx(sess.topo, r.width, r.height);
     let out = '';
     stepPackets(sess, stepIdx).forEach((p) => {
       const route = routeFor(sess.topo, p.src, p.dst);
@@ -278,6 +316,30 @@
       }).join('');
     });
     g.innerHTML = out;
+  }
+
+  /* when the canvas is wider than its box (phones), keep the action in frame */
+  function centerCanvas(sess, stepIdx) {
+    const wrap = document.querySelector('.canvaswrap');
+    const cv = document.getElementById('cv');
+    if (!wrap || !cv) return;
+    if (wrap.scrollWidth <= wrap.clientWidth + 4) return;
+    const r = cv.getBoundingClientRect();
+    const pos = layoutPx(sess.topo, cv.clientWidth, cv.clientHeight);
+    const pkts = stepPackets(sess, stepIdx);
+    let ids = [];
+    if (pkts.length) {
+      const p = pkts[0];
+      ids = routeFor(sess.topo, p.src, p.dst);
+    }
+    if (!ids.length) ids = sess.topo.devices.slice(0, 3).map((d) => d.id);
+    const xs = ids.map((id) => (pos[id] || {}).x).filter((x) => typeof x === 'number');
+    if (!xs.length) return;
+    const mid = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
+    const target = Math.max(0, mid - wrap.clientWidth / 2);
+    if (Math.abs(wrap.scrollLeft - target) > 24) {
+      try { wrap.scrollTo({ left: target, behavior: 'smooth' }); } catch (e) { wrap.scrollLeft = target; }
+    }
   }
 
   function animateStep(sess, stepIdx, cb) {
@@ -329,7 +391,16 @@
     const ipL = p.layers.find((l) => /Internet Protocol/.test(l.name));
     const nm = p.layers.find((l) => /Transmission|User Datagram|Control Message|Address Resolution|Domain Name|Dynamic Host|Layer Security|Hypertext|Simple Mail|Internet Message|File Transfer|Post Office|Border|Secure Shell/.test(l.name));
     if (nm) bits.push('The payload is <b>' + esc(nm.name) + '</b>, ' + nm.bytes.length + ' bytes.');
-    if (ipL) bits.push('TTL ' + (ipL.fields.find((f) => /Time to Live/.test(f.name)) || {}).value + ' means it can cross ' + (ipL.fields.find((f) => /Time to Live/.test(f.name)) || {}).value + ' more hops before it is dropped.');
+    if (ipL) {
+      const ttlF = ipL.fields.find((f) => /Time to Live|Hop Limit/i.test(f.name));
+      const ttlV = ttlF && ttlF.value != null && ttlF.value !== '' ? String(ttlF.value).split(' ')[0] : null;
+      if (ttlV && /^\d+$/.test(ttlV)) {
+        bits.push((/Hop Limit/i.test(ttlF.name) ? 'Hop Limit ' : 'TTL ') + ttlV +
+          ' means it can cross ' + ttlV + ' more hops before it is dropped.');
+      } else if (ttlF) {
+        bits.push((/Hop Limit/i.test(ttlF.name) ? 'Hop Limit ' : 'TTL ') + 'caps how many hops this packet may take before a router drops it.');
+      }
+    }
     if (p.sport != null) bits.push('Port ' + p.sport + ' → ' + p.dport + ' selects the service at the far end.');
     bits.push('On the wire this frame is <b>' + fmtB(p.frameLen) + '</b> including the 4-byte FCS.');
     if (p.dropped) bits.push('<span style="color:var(--bad)">This packet never arrives: ' + esc(p.note || 'it was dropped') + '.</span>');
@@ -562,6 +633,18 @@
       (nextLesson ? '<button class="btn primary" data-act="openLesson" data-id="' + nextLesson.id + '">Next: ' + esc(nextLesson.title) + ' ' + ICON.next.replace('<svg', '<svg width="13" height="13"') + '</button>' : '') +
       '</div></div></div>';
 
+    /* sticky footer: always shows where you are and what comes next */
+    h += '<div class="lessonnav">' +
+      '<span class="lbl">Step <b>' + (stepIdx + 1) + '</b> of ' + lesson.steps.length + ' · <b>' + esc(lesson.title) + '</b></span>' +
+      '<div class="track"><i style="width:' + Math.round(((stepIdx + 1) / lesson.steps.length) * 100) + '%"></i></div>' +
+      '<button class="btn sm" data-act="step" data-i="' + (stepIdx - 1) + '"' + (stepIdx === 0 ? ' disabled' : '') + '>‹ Back</button>' +
+      (atEnd
+        ? (nextLesson
+            ? '<button class="btn sm primary" data-act="openLesson" data-id="' + nextLesson.id + '">Next lesson: ' + esc(nextLesson.title) + ' ›</button>'
+            : '<button class="btn sm primary" data-act="complete">Finish the course ✓</button>')
+        : '<button class="btn sm primary" data-act="step" data-i="' + (stepIdx + 1) + '">Next step ›</button>') +
+      '</div>';
+
     return h;
   }
 
@@ -573,6 +656,7 @@
     requestAnimationFrame(() => {
       drawLinks(sess);
       paintRoutes(sess, stepIdx);
+      centerCanvas(sess, stepIdx);
       fitHex();
       animateStep(sess, stepIdx, () => {
         if (S.playing) {

@@ -195,7 +195,10 @@
       const t = trackOf[l.track];
       crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
         '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
-      right = '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
+      right = '<div class="seg" style="margin-right:2px">' +
+          '<button data-act="prev" title="Previous lesson">‹</button>' +
+          '<button data-act="nextLesson" title="Next lesson">›</button></div>' +
+        '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
         '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>' +
         '<button class="btn sm" data-act="view" data-v="lab">Explore devices</button>';
     } else if (S.view === 'lab') {

@@ -216,7 +216,11 @@
       case 'proto': {
         const id = el.getAttribute('data-id');
         S.lib = id === S.lib ? null : id;
-        render(true);
+        render();
+        if (S.lib) {
+          const d = document.getElementById('proto-detail');
+          if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         break;
       }
       case 'exam-scope':

@@ -170,7 +170,7 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);min-width:0}
 .panel + .panel{margin-top:16px}
 .panel > .hd{
-  display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);
   font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;
   background:#fcfdff;border-radius:var(--r) var(--r) 0 0
 }
@@ -191,9 +191,9 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .pcard .sm{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.55}
 .pcard .ft{display:flex;gap:6px;flex-wrap:wrap;margin-top:11px}
 .pcard .ft span{font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:1px 7px;background:var(--panel2)}
-.gl{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;box-shadow:var(--shadow)}
+.gl{border:1px solid var(--line);border-radius:12px;padding:13px 14px;background:#fff;box-shadow:var(--shadow);min-width:0;overflow-wrap:anywhere}
 .gl b{font-size:13.5px}
-.gl p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55}
+.gl p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.55;overflow-wrap:anywhere}
 .searchbox{display:flex;align-items:center;gap:9px;border:1px solid var(--line2);background:#fff;border-radius:11px;padding:9px 13px;max-width:440px;box-shadow:var(--shadow)}
 .searchbox input{flex:1;background:none;border:0;outline:0;color:var(--text);font-size:14px;font-family:inherit}
 .searchbox svg{color:var(--dim)}
@@ -248,6 +248,7 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 .col-explain,.col-net{min-width:0}
 .col-net .panel + .panel{margin-top:16px}
 @media (min-width:1241px){.col-net{position:sticky;top:64px}}
+.topbar .seg button{min-width:30px}
 .lesson-lower{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:16px}
 .lesson-lower > .panel{margin-top:0}
 .stack{display:flex;flex-direction:column;gap:16px;min-width:0}
@@ -290,7 +291,8 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 /* ============================================================
    canvas / diagram
    ============================================================ */
-.canvaswrap{padding:12px}
+.canvaswrap{padding:12px;overflow-x:auto}
+.canvaswrap::-webkit-scrollbar{height:8px}
 .canvas{
   position:relative;width:100%;height:424px;border-radius:12px;overflow:hidden;
   background:
@@ -366,7 +368,8 @@ h2{font-size:22px;letter-spacing:-.02em;font-weight:700}
 /* ============================================================
    packet table
    ============================================================ */
-.pcaplist{max-height:290px;overflow:auto}
+.pcaplist{max-height:290px;overflow:auto;max-width:100%}
+table.pcap{min-width:0}
 table.pcap{width:100%;border-collapse:collapse;font-size:12px}
 table.pcap th{
   position:sticky;top:0;background:#f7f9fd;text-align:left;padding:8px 10px;font-size:10px;
@@ -606,18 +609,30 @@ table.grid td.hi{color:var(--text);font-weight:600}
   .goals{display:none}
   .lesson-head{margin-bottom:10px}
   .pips .pip span{max-width:120px}
+  .topbar .seg{display:none}
+  .panel > .hd .chip.mono{display:none}
+  .routecrumb{font-size:11.5px;gap:6px}
+  .rc-hint{margin-left:0;width:100%}
   .lesson-head .t1{font-size:23px}
   .explain{padding:17px 16px}
   .explain h3{font-size:20px}
-  .canvas{height:330px}
+  /* a phone cannot fit a 10-node network: keep the diagram at a readable
+     size and let the reader swipe it, instead of crushing every label */
+  .canvas{height:340px;min-width:640px}
+  .canvaswrap{padding:8px}
   .node{min-width:52px;padding:5px 7px}
   .node .nm{font-size:10px;max-width:80px}
   .node .bx{width:28px;height:28px}
   .node .ip{display:none}
   .canvas .hint{display:none}
   .hide-sm{display:none}
-  .c-s,.c-d{width:90px}
-  table.pcap .info{max-width:200px}
+  /* on phones the addresses are too wide: keep No/Proto/Info, hide the two IP columns */
+  table.pcap colgroup{display:none}
+  table.pcap{table-layout:auto;width:100%}
+  table.pcap th:nth-child(3),table.pcap th:nth-child(4),table.pcap td:nth-child(3),table.pcap td:nth-child(4){display:none}
+  table.pcap th,table.pcap td{padding:6px 7px}
+  table.pcap .info{max-width:210px}
+  .pcaplist{max-height:none}
   .qstem{font-size:19px}
   .lessonnav .lbl{font-size:12px}
 }
@@ -6093,7 +6108,10 @@ table.grid td.hi{color:var(--text);font-weight:600}
       const t = trackOf[l.track];
       crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
         '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
-      right = '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
+      right = '<div class="seg" style="margin-right:2px">' +
+          '<button data-act="prev" title="Previous lesson">‹</button>' +
+          '<button data-act="nextLesson" title="Next lesson">›</button></div>' +
+        '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
         '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>' +
         '<button class="btn sm" data-act="view" data-v="lab">Explore devices</button>';
     } else if (S.view === 'lab') {
@@ -6271,17 +6289,60 @@ table.grid td.hi{color:var(--text);font-weight:600}
     return out;
   }
 
+  /* px-space relaxation, run against the measured canvas so it works at any width */
+  const pxCache = {};
+  function layoutPx(topo, w, h) {
+    const key = topo.id + ':' + Math.round(w) + 'x' + Math.round(h);
+    if (pxCache[key]) return pxCache[key];
+    const MX = 116, MY = 62;           // node footprint incl. label, in px
+    const pts = topo.devices.map((d) => ({
+      id: d.id,
+      x: (Math.max(11, Math.min(86, d.x)) / 100) * w,
+      y: (Math.max(12, Math.min(78, d.y)) / 100) * h,
+    }));
+    const clamp = () => pts.forEach((p) => {
+      p.x = Math.max(MX / 2 + 6, Math.min(w - MX / 2 - 6, p.x));
+      p.y = Math.max(MY / 2 + 4, Math.min(h - MY / 2 - 4, p.y));
+    });
+    clamp();
+    for (let it = 0; it < 220; it++) {
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const a = pts[i], b = pts[j];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const ox = MX - Math.abs(dx), oy = MY - Math.abs(dy);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) { const s = (dx >= 0 ? 1 : -1) * ox / 2; a.x -= s; b.x += s; }
+            else { const s = (dy >= 0 ? 1 : -1) * oy / 2; a.y -= s; b.y += s; }
+          }
+        }
+      }
+      clamp();
+    }
+    const out = {};
+    pts.forEach((p) => { out[p.id] = p; });
+    pxCache[key] = out;
+    return out;
+  }
+
+  function applyNodePositions(topo, pos) {
+    const cv = document.getElementById('cv');
+    if (!cv) return;
+    cv.querySelectorAll('.node[data-dev]').forEach((n) => {
+      const p = pos[n.getAttribute('data-dev')];
+      if (!p) return;
+      n.style.left = p.x + 'px';
+      n.style.top = p.y + 'px';
+    });
+  }
+
   function drawLinks(sess) {
     const cv = document.getElementById('cv');
     const svg = document.getElementById('cvsvg');
     if (!cv || !svg) return { pos: {} };
     const r = cv.getBoundingClientRect();
-    const pos = {};
-    const lay = layoutFor(sess.topo);
-    sess.topo.devices.forEach((d) => {
-      const p = lay[d.id] || { x: d.x, y: d.y };
-      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
-    });
+    const pos = layoutPx(sess.topo, r.width, r.height);
+    applyNodePositions(sess.topo, pos);
     const lines = (sess.topo.links || []).map(([a, b]) => {
       if (!pos[a] || !pos[b]) return '';
       return '<line x1="' + pos[a].x.toFixed(1) + '" y1="' + pos[a].y.toFixed(1) +
@@ -6388,12 +6449,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const cv = document.getElementById('cv');
     if (!cv) return;
     const r = cv.getBoundingClientRect();
-    const pos = {};
-    const lay = layoutFor(sess.topo);
-    sess.topo.devices.forEach((d) => {
-      const p = lay[d.id] || { x: d.x, y: d.y };
-      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
-    });
+    const pos = layoutPx(sess.topo, r.width, r.height);
     let out = '';
     stepPackets(sess, stepIdx).forEach((p) => {
       const route = routeFor(sess.topo, p.src, p.dst);
@@ -6406,6 +6462,30 @@ table.grid td.hi{color:var(--text);font-weight:600}
       }).join('');
     });
     g.innerHTML = out;
+  }
+
+  /* when the canvas is wider than its box (phones), keep the action in frame */
+  function centerCanvas(sess, stepIdx) {
+    const wrap = document.querySelector('.canvaswrap');
+    const cv = document.getElementById('cv');
+    if (!wrap || !cv) return;
+    if (wrap.scrollWidth <= wrap.clientWidth + 4) return;
+    const r = cv.getBoundingClientRect();
+    const pos = layoutPx(sess.topo, cv.clientWidth, cv.clientHeight);
+    const pkts = stepPackets(sess, stepIdx);
+    let ids = [];
+    if (pkts.length) {
+      const p = pkts[0];
+      ids = routeFor(sess.topo, p.src, p.dst);
+    }
+    if (!ids.length) ids = sess.topo.devices.slice(0, 3).map((d) => d.id);
+    const xs = ids.map((id) => (pos[id] || {}).x).filter((x) => typeof x === 'number');
+    if (!xs.length) return;
+    const mid = (Math.min.apply(null, xs) + Math.max.apply(null, xs)) / 2;
+    const target = Math.max(0, mid - wrap.clientWidth / 2);
+    if (Math.abs(wrap.scrollLeft - target) > 24) {
+      try { wrap.scrollTo({ left: target, behavior: 'smooth' }); } catch (e) { wrap.scrollLeft = target; }
+    }
   }
 
   function animateStep(sess, stepIdx, cb) {
@@ -6457,7 +6537,16 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const ipL = p.layers.find((l) => /Internet Protocol/.test(l.name));
     const nm = p.layers.find((l) => /Transmission|User Datagram|Control Message|Address Resolution|Domain Name|Dynamic Host|Layer Security|Hypertext|Simple Mail|Internet Message|File Transfer|Post Office|Border|Secure Shell/.test(l.name));
     if (nm) bits.push('The payload is <b>' + esc(nm.name) + '</b>, ' + nm.bytes.length + ' bytes.');
-    if (ipL) bits.push('TTL ' + (ipL.fields.find((f) => /Time to Live/.test(f.name)) || {}).value + ' means it can cross ' + (ipL.fields.find((f) => /Time to Live/.test(f.name)) || {}).value + ' more hops before it is dropped.');
+    if (ipL) {
+      const ttlF = ipL.fields.find((f) => /Time to Live|Hop Limit/i.test(f.name));
+      const ttlV = ttlF && ttlF.value != null && ttlF.value !== '' ? String(ttlF.value).split(' ')[0] : null;
+      if (ttlV && /^\d+$/.test(ttlV)) {
+        bits.push((/Hop Limit/i.test(ttlF.name) ? 'Hop Limit ' : 'TTL ') + ttlV +
+          ' means it can cross ' + ttlV + ' more hops before it is dropped.');
+      } else if (ttlF) {
+        bits.push((/Hop Limit/i.test(ttlF.name) ? 'Hop Limit ' : 'TTL ') + 'caps how many hops this packet may take before a router drops it.');
+      }
+    }
     if (p.sport != null) bits.push('Port ' + p.sport + ' → ' + p.dport + ' selects the service at the far end.');
     bits.push('On the wire this frame is <b>' + fmtB(p.frameLen) + '</b> including the 4-byte FCS.');
     if (p.dropped) bits.push('<span style="color:var(--bad)">This packet never arrives: ' + esc(p.note || 'it was dropped') + '.</span>');
@@ -6690,6 +6779,18 @@ table.grid td.hi{color:var(--text);font-weight:600}
       (nextLesson ? '<button class="btn primary" data-act="openLesson" data-id="' + nextLesson.id + '">Next: ' + esc(nextLesson.title) + ' ' + ICON.next.replace('<svg', '<svg width="13" height="13"') + '</button>' : '') +
       '</div></div></div>';
 
+    /* sticky footer: always shows where you are and what comes next */
+    h += '<div class="lessonnav">' +
+      '<span class="lbl">Step <b>' + (stepIdx + 1) + '</b> of ' + lesson.steps.length + ' · <b>' + esc(lesson.title) + '</b></span>' +
+      '<div class="track"><i style="width:' + Math.round(((stepIdx + 1) / lesson.steps.length) * 100) + '%"></i></div>' +
+      '<button class="btn sm" data-act="step" data-i="' + (stepIdx - 1) + '"' + (stepIdx === 0 ? ' disabled' : '') + '>‹ Back</button>' +
+      (atEnd
+        ? (nextLesson
+            ? '<button class="btn sm primary" data-act="openLesson" data-id="' + nextLesson.id + '">Next lesson: ' + esc(nextLesson.title) + ' ›</button>'
+            : '<button class="btn sm primary" data-act="complete">Finish the course ✓</button>')
+        : '<button class="btn sm primary" data-act="step" data-i="' + (stepIdx + 1) + '">Next step ›</button>') +
+      '</div>';
+
     return h;
   }
 
@@ -6701,6 +6802,7 @@ table.grid td.hi{color:var(--text);font-weight:600}
     requestAnimationFrame(() => {
       drawLinks(sess);
       paintRoutes(sess, stepIdx);
+      centerCanvas(sess, stepIdx);
       fitHex();
       animateStep(sess, stepIdx, () => {
         if (S.playing) {
@@ -7500,7 +7602,9 @@ table.grid td.hi{color:var(--text);font-weight:600}
     const q = S.search.trim().toLowerCase();
     const list = D.PROTOCOLS.filter((p) => !q || (p.name + p.abbr + p.summary + p.rfc).toLowerCase().includes(q));
 
-    h += '<div class="cards">' + list.map((p) => {
+    const detail = sel ? protoDetail(sel) : '';
+    h += detail;
+    h += '<div class="cards" id="protocards">' + list.map((p) => {
       const c = protoColor(p);
       return '<button class="pcard" data-act="proto" data-id="' + p.id + '"' + (sel && sel.id === p.id ? ' style="border-color:' + c + '88"' : '') + '>' +
         '<div class="top"><span class="ab" style="background:' + c + '">' + esc(p.abbr) + '</span>' +
@@ -7514,9 +7618,13 @@ table.grid td.hi{color:var(--text);font-weight:600}
 
     if (!list.length) h += '<div class="empty">Nothing matches that filter.</div>';
 
-    if (sel) {
-      const c = protoColor(sel);
-      h += '<div class="panel" style="margin-top:16px"><div class="hd"><span style="color:' + c + '">' + esc(sel.name) + '</span>' +
+    return h;
+  }
+
+  function protoDetail(sel) {
+    const c = protoColor(sel);
+    let d = '';
+    d += '<div class="panel" id="proto-detail" style="margin-bottom:16px"><div class="hd"><span style="color:' + c + '">' + esc(sel.name) + '</span>' +
         '<span class="chip mono" style="text-transform:none;letter-spacing:0">' + esc(sel.rfc) + '</span>' +
         '<span class="spacer"></span><button class="btn sm ghost" data-act="proto" data-id="">Close</button></div>' +
         '<div class="bd" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px">' +
@@ -7529,9 +7637,9 @@ table.grid td.hi{color:var(--text);font-weight:600}
         '<div class="datacard"><table><tbody>' + sel.fields.map((f) => '<tr><td style="font-family:var(--mono);font-size:11.5px">' + esc(f) + '</td></tr>').join('') + '</tbody></table>' +
         '<div class="nt">Layer ' + sel.layer + ' · ' + (LAYER_NAMES[Math.round(sel.layer)] || '') + ' · ports ' + esc(sel.port) + '</div></div>' +
         '</div></div></div>';
-    }
-    return h;
+    return d;
   }
+
 
   function glossary() {
     const all = [];
@@ -8557,7 +8665,11 @@ table.grid td.hi{color:var(--text);font-weight:600}
       case 'proto': {
         const id = el.getAttribute('data-id');
         S.lib = id === S.lib ? null : id;
-        render(true);
+        render();
+        if (S.lib) {
+          const d = document.getElementById('proto-detail');
+          if (d) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         break;
       }
       case 'exam-scope':
