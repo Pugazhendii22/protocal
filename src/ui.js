@@ -116,55 +116,60 @@
   /* ---------------- shell ---------------- */
   function renderSidebar() {
     const o = overall();
-    const groups = [
-      { title: 'Guided course', items: [{ kind: 'view', id: 'tour', label: 'Course overview', icon: 'home', hint: 'Syllabus & progress' }].concat(TRACKS.map((t) => ({ kind: 'track', t }))) },
-      { title: 'Free explore', items: [
-        { kind: 'view', id: 'lab', label: 'Device lab', icon: 'grid', hint: 'Open any device' },
-        { kind: 'view', id: 'exam', label: 'Exam mode', icon: 'list', hint: 'Timed mixed quiz' },
-        { kind: 'view', id: 'library', label: 'Protocol library', icon: 'book', hint: root.PE_DATA.PROTOCOLS.length + ' protocols' },
-        { kind: 'view', id: 'timeline', label: 'Protocol timeline', icon: 'book', hint: (root.PE_DATA.TIMELINE || []).length + ' milestones' },
-        { kind: 'view', id: 'sources', label: 'Sources & further reading', icon: 'book', hint: 'books · repos · RFCs' },
-        { kind: 'view', id: 'glossary', label: 'Glossary', icon: 'list', hint: 'Every term' },
-        { kind: 'view', id: 'cheatsheet', label: 'Ports & cheat sheet', icon: 'terminal', hint: 'Quick reference' },
-      ] },
+    const next = LESSONS.find((l) => !isDone(l)) || LESSONS[0];
+    const nextTrack = trackOf[next.track];
+
+    const explore = [
+      { kind: 'view', id: 'lab', label: 'Explore devices', icon: 'grid', hint: 'Look inside any router, phone or server' },
+      { kind: 'view', id: 'library', label: 'Protocol guide', icon: 'book', hint: root.PE_DATA.PROTOCOLS.length + ' protocols explained' },
+      { kind: 'view', id: 'exam', label: 'Practice test', icon: 'list', hint: 'Timed quiz, all tracks' },
+      { kind: 'view', id: 'timeline', label: 'History of the internet', icon: 'book', hint: (root.PE_DATA.TIMELINE || []).length + ' moments that shaped it' },
+      { kind: 'view', id: 'cheatsheet', label: 'Quick reference', icon: 'terminal', hint: 'Ports, layers, commands' },
+      { kind: 'view', id: 'glossary', label: 'Word list', icon: 'list', hint: 'Every term, plain English' },
+      { kind: 'view', id: 'sources', label: 'Books & links', icon: 'book', hint: 'Where to go next' },
     ];
 
     let h = '<div class="brand">' + brandMark() +
-      '<div><div class="name">Protocol Explorer</div><div class="sub">packet by packet</div></div></div>' +
+      '<div><div class="name">Protocol Explorer</div><div class="sub">learn it packet by packet</div></div></div>' +
       '<div class="sidebar-scroll scroll">';
 
-    groups.forEach((g) => {
-      h += '<div class="navgroup"><div class="gt"><span>' + g.title + '</span>' +
-        (g.title === 'Guided course' ? '<span class="mono" style="color:var(--muted);font-size:10px">' + o.done + '/' + o.total + '</span>' : '') +
-        '</div>';
-      g.items.forEach((it) => {
-        if (it.kind === 'view') {
-          h += '<button class="navitem' + (S.view === it.id ? ' active' : '') + '" data-act="view" data-v="' + it.id + '">' +
-            '<span class="num" style="background:transparent;color:var(--dim)">' + (ICON[it.icon] ? ICON[it.icon].replace('<svg', '<svg width="14" height="14"') : '') + '</span>' +
-            '<span class="lbl">' + esc(it.label) + '<div style="font-size:10.5px;color:var(--dim)">' + esc(it.hint) + '</div></span></button>';
-          return;
-        }
-        const t = it.t;
-        const st = trackStats(t.id);
-        h += '<div style="padding:8px 9px 3px;display:flex;align-items:center;gap:7px">' +
-          '<span class="dot" style="color:' + t.color + '"></span>' +
-          '<span style="font-size:11.5px;font-weight:650;color:var(--text2)">' + t.n + '. ' + esc(t.title) + '</span>' +
-          '<span style="flex:1"></span><span class="mono" style="font-size:9.5px;color:var(--dim)">' + st.done + '/' + st.total + '</span></div>' +
-          '<div class="trackbar"><i style="width:' + st.pct + '%;background:' + t.color + '"></i></div>';
-        LESSONS.filter((l) => l.track === t.id).forEach((l) => {
-          const idx = LESSONS.indexOf(l) + 1;
-          const active = S.view === 'lesson' && S.lessonId === l.id;
-          const done = isDone(l);
-          h += '<button class="navitem' + (active ? ' active' : '') + (done ? ' done' : '') + '" data-act="lesson" data-id="' + l.id + '">' +
-            '<span class="num">' + (done ? '✓' : pad(idx)) + '</span>' +
-            '<span class="lbl">' + esc(l.title) + '</span>' +
-            (done ? '<span class="chk">✓</span>' : '') + '</button>';
-        });
+    // continue card
+    h += '<button class="navitem active" data-act="openLesson" data-id="' + next.id + '" style="padding:11px 12px;margin:4px 0 6px;background:var(--accent-soft);border:1px solid #dcdcfb">' +
+      '<span class="num" style="background:' + nextTrack.color + ';color:#fff;box-shadow:none">' + (o.done ? '▶' : '1') + '</span>' +
+      '<span class="lbl"><b style="font-size:13px">' + (o.done ? 'Continue learning' : 'Start here') + '</b>' +
+      '<div style="font-size:11.5px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(next.title) + '</div></span></button>';
+
+    h += '<div class="navgroup"><div class="gt"><span>Lessons</span>' +
+      '<span class="mono" style="font-size:10.5px;letter-spacing:0;color:var(--muted)">' + o.done + '/' + o.total + '</span></div>';
+
+    TRACKS.forEach((t) => {
+      const st = trackStats(t.id);
+      h += '<div style="padding:10px 9px 2px;display:flex;align-items:center;gap:8px">' +
+        '<span class="dot" style="color:' + t.color + '"></span>' +
+        '<span style="font-size:12px;font-weight:750;color:var(--text2);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + t.n + '. ' + esc(t.title) + '</span>' +
+        '<span class="mono" style="font-size:10px;color:var(--dim)">' + st.done + '/' + st.total + '</span></div>' +
+        '<div class="trackbar"><i style="width:' + st.pct + '%;background:' + t.color + '"></i></div>';
+      LESSONS.filter((l) => l.track === t.id).forEach((l) => {
+        const idx = LESSONS.indexOf(l) + 1;
+        const active = S.view === 'lesson' && S.lessonId === l.id;
+        const done = isDone(l);
+        h += '<button class="navitem' + (active ? ' active' : '') + (done ? ' done' : '') + '" data-act="lesson" data-id="' + l.id + '">' +
+          '<span class="num">' + (done ? '✓' : pad(idx)) + '</span>' +
+          '<span class="lbl">' + esc(l.title) + '</span></button>';
       });
-      h += '</div>';
     });
     h += '</div>';
-    h += '<div class="side-foot"><span>' + o.pct + '% complete</span><button class="btn sm ghost" data-act="reset">Reset</button></div>';
+
+    h += '<div class="navgroup"><div class="gt"><span>Explore</span></div>';
+    explore.forEach((it) => {
+      h += '<button class="navitem' + (S.view === it.id ? ' active' : '') + '" data-act="view" data-v="' + it.id + '">' +
+        '<span class="num" style="background:transparent;color:var(--dim)">' + (ICON[it.icon] ? ICON[it.icon].replace('<svg', '<svg width="15" height="15"') : '') + '</span>' +
+        '<span class="lbl">' + esc(it.label) + '</span></button>';
+    });
+    h += '</div></div>';
+
+    h += '<div class="side-foot"><span><b style="color:var(--text2)">' + o.pct + '%</b> complete</span>' +
+      '<button class="btn sm ghost" data-act="reset">Reset progress</button></div>';
     document.getElementById('sidebar').innerHTML = h;
     document.getElementById('sidebar').classList.toggle('open', S.menu);
   }
@@ -179,36 +184,36 @@
 
   function renderTopbar() {
     let crumbs = '';
-    let right = '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
-      '<button class="icobtn" data-act="view" data-v="tour" title="Course overview">' + ICON.home + '</button>';
+    let right = '<button class="btn sm ghost hide-sm" data-act="palette" title="Search everything (Ctrl+K)" style="gap:7px">' +
+        ICON.search + '<span style="color:var(--muted)">Search</span><kbd style="margin-left:2px">Ctrl K</kbd></button>' +
+      '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>';
+
     if (S.view === 'tour') {
-      crumbs = '<b>Course overview</b><span style="color:var(--dim)">·</span><span>' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
-    }
-    if (S.view === 'lesson') {
+      crumbs = '<b>Home</b><span style="color:var(--dim)">·</span><span>' + TRACKS.length + ' tracks · ' + LESSONS.length + ' lessons</span>';
+    } else if (S.view === 'lesson') {
       const l = byId[S.lessonId];
       const t = trackOf[l.track];
-      crumbs = '<span style="color:' + t.color + '">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
+      crumbs = '<span style="color:' + t.color + ';font-weight:650">Track ' + t.n + ' · ' + esc(t.title) + '</span>' +
         '<span style="color:var(--dim)">/</span><b>' + esc(l.title) + '</b>';
-      right = '<div class="seg" style="margin-right:2px">' +
-        '<button data-act="prev" title="Previous lesson">‹</button>' +
-        '<button data-act="nextLesson" title="Next lesson">›</button></div>' +
-        '<button class="btn sm" data-act="view" data-v="lab">Device lab</button>' +
-        '<button class="btn sm primary" data-act="openNextLesson">Next<span class="hide-sm"> lesson</span> ' + ICON.next.replace('<svg', '<svg width="13" height="13"') + '</button>';
+      right = '<button class="icobtn" data-act="palette" title="Search everything (Ctrl+K)">' + ICON.search + '</button>' +
+        '<button class="icobtn" data-act="view" data-v="tour" title="Home">' + ICON.home + '</button>' +
+        '<button class="btn sm" data-act="view" data-v="lab">Explore devices</button>';
     } else if (S.view === 'lab') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Device lab</b>';
+      crumbs = '<b>Explore devices</b><span style="color:var(--dim)">·</span><span>click any box to open it</span>';
     } else if (S.view === 'library') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Protocol library</b>';
+      crumbs = '<b>Protocol guide</b>';
     } else if (S.view === 'sources') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Sources & further reading</b>';
+      crumbs = '<b>Books & links</b>';
     } else if (S.view === 'glossary') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Glossary</b>';
+      crumbs = '<b>Word list</b>';
     } else if (S.view === 'cheatsheet') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Ports & cheat sheet</b>';
+      crumbs = '<b>Quick reference</b>';
     } else if (S.view === 'exam') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Exam mode</b>';
+      crumbs = '<b>Practice test</b>';
     } else if (S.view === 'timeline') {
-      crumbs = '<span style="color:var(--accent)">Free explore</span><span style="color:var(--dim)">/</span><b>Protocol timeline</b>';
+      crumbs = '<b>History of the internet</b>';
     }
+
     document.getElementById('topbar').innerHTML =
       '<button class="icobtn menubtn" data-act="menu">' + ICON.menu + '</button>' +
       '<div class="crumbs">' + crumbs + '</div><div class="spacer"></div>' + right;

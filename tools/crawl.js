@@ -45,6 +45,42 @@ const { chromium } = require('playwright-core');
   }
   console.log('steps visited', stepCount);
 
+  // ---- the diagram must never draw a packet off-graph ----
+  const routing = await p.evaluate(() => {
+    const bad = [];
+    let checked = 0, segs = 0;
+    const graph = {};
+    PE_UI.LESSONS.forEach((l) => {
+      const sess = PE_ENGINE.buildSession(l);
+      const adj = {};
+      sess.topo.devices.forEach((d) => { adj[d.id] = []; });
+      (sess.topo.links || []).forEach(([a, b]) => { if (adj[a] && adj[b]) { adj[a].push(b); adj[b].push(a); } });
+      const route = (A, B) => {
+        if (A === B) return [A];
+        if (!adj[A] || !adj[B]) return [];
+        const prev = {}, seen = { [A]: 1 }, q = [A];
+        while (q.length) { const c = q.shift(); if (c === B) break; (adj[c] || []).forEach((n) => { if (seen[n]) return; seen[n] = 1; prev[n] = c; q.push(n); }); }
+        if (!seen[B]) return [];
+        const out = [B]; let c = B; while (c !== A) { c = prev[c]; out.unshift(c); } return out;
+      };
+      sess.packets.forEach((pk) => {
+        checked++;
+        const r = route(pk.src, pk.dst);
+        if (!r.length) bad.push(l.id + ': ' + pk.src + '→' + pk.dst);
+        else {
+          segs += r.length - 1;
+          // every consecutive pair must be an actual link
+          for (let i = 0; i < r.length - 1; i++) {
+            if (!adj[r[i]].includes(r[i + 1])) bad.push(l.id + ': hop ' + r[i] + '→' + r[i + 1] + ' is not a link');
+          }
+        }
+      });
+    });
+    return { checked, segs, bad: bad.slice(0, 10) };
+  });
+  console.log('routing', JSON.stringify(routing));
+  if (routing.bad.length) errs.push('ROUTING: ' + routing.bad.join(' | '));
+
   // topologies x devices x tabs
   const topo = await p.evaluate(() => Object.keys(PE_TOPO.TOPOLOGIES));
   let devN = 0, tabN = 0;

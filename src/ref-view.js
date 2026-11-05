@@ -15,8 +15,8 @@
 
   function library() {
     const sel = S.lib ? D.PROTOCOLS.find((p) => p.id === S.lib) : null;
-    let h = '<div class="sectionhead"><div><h2>Protocol library</h2>' +
-      '<p>Seventeen protocols, what each one actually puts on the wire, and the one gotcha that trips people up.</p></div>' +
+    let h = '<div class="sectionhead"><div><h2>Protocol guide</h2>' +
+      '<p>' + D.PROTOCOLS.length + ' protocols, what each one actually puts on the wire, and the one gotcha that trips people up.</p></div>' +
       '<div class="searchbox">' + U.ICON.search + '<input id="libsearch" placeholder="Filter protocols…" value="' + esc(S.search) + '" /></div></div>';
 
     const q = S.search.trim().toLowerCase();

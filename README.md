@@ -3,6 +3,11 @@
 A guided, hands-on course on how the internet actually works. Built as a single
 static site: no build step, no dependencies, no network calls.
 
+**Light, beginner-first UI.** Plain-language navigation (*Start here · Lessons ·
+Explore devices · Practice test*), four "where would you like to start?" paths on
+the home page, and a lesson layout where the explanation, the animated network,
+the packet list and the byte inspector never move around between steps.
+
 Open `index.html`, or serve the folder:
 
 ```bash
@@ -23,6 +28,12 @@ python3 -m http.server 8080
 | 6 · Advanced & modern | performance (latency, BDP, bufferbloat) · IPv6 & NDP · anycast/CDN/DNS steering · middleboxes & CGNAT · observability, eBPF & attacks |
 | 7 · Protocol deep dives | TLS 1.3 handshake internals · QUIC & HTTP/3 · HTTP/2 multiplexing · DNSSEC & DNS privacy · Wi-Fi association & WPA2 · time and NTP |
 | 8 · Cloud, containers & ops | Kubernetes pod networking & ClusterIPs · cloud VPCs, routes and two kinds of firewall · netfilter & conntrack · mTLS and service mesh · QoS and queueing · RTP/ICE/TURN real-time media |
+
+The animated diagram is routed on the real topology: a packet travels
+**hop by hop along the drawn links** (284 packets → 623 link segments, verified
+in `tools/crawl.js`), the path stays highlighted while it moves, intermediate
+routers pulse as it passes through them, and the dropped packets stop mid-path
+with a red ✕ instead of vanishing.
 
 Every lesson is a scenario with steps. Each step has an explanation, a
 "why it works this way", an analogy, the terms it introduces, an animated

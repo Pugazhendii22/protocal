@@ -8,6 +8,50 @@
   const { S, esc, ICON, fmtB, pad, byId, trackOf } = U;
 
   const cache = {};
+
+  /* ---------- node layout: nudge overlapping boxes apart, once per topology ----------
+     Positions are authored in %, but the canvas is much wider than it is tall, so we
+     solve the layout in pixel-ish units (x weighted by W/H) and convert back. */
+  const layouts = {};
+  const ASPECT = 2.6;
+  function layoutFor(topo) {
+    if (layouts[topo.id]) return layouts[topo.id];
+    const pads = topo.devices.map((d) => ({
+      id: d.id,
+      x: Math.max(9, Math.min(91, d.x)),
+      y: Math.max(11, Math.min(84, d.y)),
+    }));
+    const MINX = 17, MINY = 17;
+    for (let iter = 0; iter < 260; iter++) {
+      for (let i = 0; i < pads.length; i++) {
+        for (let j = i + 1; j < pads.length; j++) {
+          const a = pads[i], b = pads[j];
+          let dx = (b.x - a.x) * ASPECT;
+          let dy = b.y - a.y;
+          const adx = Math.abs(dx) || 0.001;
+          const ady = Math.abs(dy) || 0.001;
+          // minimum gap in weighted units
+          const needX = MINX, needY = MINY;
+          if (adx < needX && ady < needY) {
+            const pushX = (needX - adx) / 2;
+            const pushY = (needY - ady) / 2;
+            const sx = dx >= 0 ? 1 : -1;
+            const sy = dy >= 0 ? 1 : -1;
+            a.x -= (pushX / ASPECT) * sx; b.x += (pushX / ASPECT) * sx;
+            a.y -= pushY * sy; b.y += pushY * sy;
+          }
+        }
+      }
+      pads.forEach((p) => {
+        p.x = Math.max(9, Math.min(91, p.x));
+        p.y = Math.max(11, Math.min(84, p.y));
+      });
+    }
+    const out = {};
+    pads.forEach((p) => { out[p.id] = { x: p.x, y: p.y }; });
+    layouts[topo.id] = out;
+    return out;
+  }
   const LS = { open: {}, hl: null, sel: null, timers: [], playToken: 0 };
 
   function session(lesson) {
@@ -32,11 +76,11 @@
     const focus = new Set(lesson.steps[stepIdx].focus || []);
     active.forEach((a) => focus.add(a));
 
+    const lay = layoutFor(sess.topo);
     const nodes = sess.topo.devices.map((d) => {
       const cls = 'node' + (focus.has(d.id) ? ' focus' : '') + (focus.size && !focus.has(d.id) ? ' dim' : '');
-      const cx = Math.max(7, Math.min(93, d.x));
-      const cy = Math.max(10, Math.min(84, d.y));
-      return '<div class="' + cls + '" data-dev="' + d.id + '" style="left:' + cx + '%;top:' + cy + '%" title="Open ' + esc(d.label) + '">' +
+      const p = lay[d.id] || { x: d.x, y: d.y };
+      return '<div class="' + cls + '" data-dev="' + d.id + '" style="left:' + p.x.toFixed(2) + '%;top:' + p.y.toFixed(2) + '%" title="Open ' + esc(d.label) + '">' +
         '<div class="bx">' + (ICON[d.kind] || ICON.server) + '</div>' +
         '<div class="nm">' + esc(d.label) + '</div>' +
         '<div class="ip">' + esc(d.ip || '—') + '</div></div>';
@@ -58,19 +102,65 @@
       '<span><i class="dot" style="color:' + c + '"></i>' + esc(p) + '</span>');
   }
 
+  /* ---- topology graph + real routing between devices ---- */
+  const graphs = {};
+  function graphOf(topo) {
+    if (graphs[topo.id]) return graphs[topo.id];
+    const adj = {};
+    topo.devices.forEach((d) => { adj[d.id] = []; });
+    (topo.links || []).forEach(([a, b]) => {
+      if (!adj[a] || !adj[b]) return;
+      adj[a].push(b);
+      adj[b].push(a);
+    });
+    graphs[topo.id] = adj;
+    return adj;
+  }
+
+  /* shortest path over the drawn links — a packet never teleports across the diagram */
+  function routeFor(topo, a, b) {
+    if (!a || !b) return [];
+    if (a === b) return [a];
+    const adj = graphOf(topo);
+    if (!adj[a] || !adj[b]) return [];
+    const prev = {};
+    const seen = { [a]: true };
+    const q = [a];
+    while (q.length) {
+      const cur = q.shift();
+      if (cur === b) break;
+      (adj[cur] || []).forEach((n) => {
+        if (seen[n]) return;
+        seen[n] = true;
+        prev[n] = cur;
+        q.push(n);
+      });
+    }
+    if (!seen[b]) return [];
+    const out = [b];
+    let cur = b;
+    while (cur !== a) { cur = prev[cur]; out.unshift(cur); }
+    return out;
+  }
+
   function drawLinks(sess) {
     const cv = document.getElementById('cv');
     const svg = document.getElementById('cvsvg');
     if (!cv || !svg) return { pos: {} };
     const r = cv.getBoundingClientRect();
     const pos = {};
-    sess.topo.devices.forEach((d) => { pos[d.id] = { x: (d.x / 100) * r.width, y: (d.y / 100) * r.height }; });
+    const lay = layoutFor(sess.topo);
+    sess.topo.devices.forEach((d) => {
+      const p = lay[d.id] || { x: d.x, y: d.y };
+      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
+    });
     const lines = (sess.topo.links || []).map(([a, b]) => {
       if (!pos[a] || !pos[b]) return '';
-      return '<line x1="' + pos[a].x + '" y1="' + pos[a].y + '" x2="' + pos[b].x + '" y2="' + pos[b].y + '" class="link"/>';
+      return '<line x1="' + pos[a].x.toFixed(1) + '" y1="' + pos[a].y.toFixed(1) +
+        '" x2="' + pos[b].x.toFixed(1) + '" y2="' + pos[b].y.toFixed(1) + '" class="link"/>';
     }).join('');
     svg.setAttribute('viewBox', '0 0 ' + r.width + ' ' + r.height);
-    svg.innerHTML = lines;
+    svg.innerHTML = lines + '<g id="cvroute"></g>';
     return { pos, w: r.width, h: r.height };
   }
 
@@ -79,35 +169,79 @@
     LS.timers = [];
   }
 
-  function moveDot(from, to, color, duration, dropped) {
+  function openCache() { return {}; }
+
+  /* ---------- one packet: hop, hop, hop along the real route ---------- */
+  function moveAlong(geo, route, color, segDur, dropped) {
     const layer = document.getElementById('cvpk');
-    if (!layer) return;
+    if (!layer || route.length < 2) return 0;
+    if (!isFinite(segDur) || segDur <= 0) segDur = 200;
+    const pts = route.map((id) => geo.pos[id]).filter(Boolean);
+    if (pts.length < 2) return 0;
+
+    // highlight the route under the packet so the path itself is visible
+    const g = document.getElementById('cvroute');
+    if (g) {
+      g.innerHTML = pts.slice(0, -1).map((p, i) => {
+        const q = pts[i + 1];
+        return '<line x1="' + p.x.toFixed(1) + '" y1="' + p.y.toFixed(1) + '" x2="' + q.x.toFixed(1) +
+          '" y2="' + q.y.toFixed(1) + '" class="link hot"/>';
+      }).join('');
+    }
+
     const dot = document.createElement('div');
-    dot.style.cssText = 'position:absolute;width:11px;height:11px;border-radius:50%;left:0;top:0;background:' + color +
-      ';box-shadow:0 0 12px 2px ' + color + '99;transition:none;z-index:9';
-    dot.style.transform = 'translate(' + (from.x - 5.5) + 'px,' + (from.y - 5.5) + 'px)';
+    dot.className = 'pktdot';
+    dot.style.background = color;
+    dot.style.boxShadow = '0 0 0 3px ' + color + '33, 0 0 16px 3px ' + color + '77';
+    dot.style.transform = 'translate(' + (pts[0].x - 7) + 'px,' + (pts[0].y - 7) + 'px)';
     layer.appendChild(dot);
-    const t0 = performance.now();
+
+    // dropped packets stop two-thirds of the way along, wherever that is
+    const total = pts.length - 1;
+    const stopAt = dropped ? Math.max(0.35, Math.min(0.66, (total - 0.34) / total)) : 1;
+
+    let seg = 0;
+    let segStart = performance.now();
     function frame(now) {
-      const k = Math.min(1, (now - t0) / duration);
+      if (!dot.isConnected) return;
+      const progressed = Math.min(1, Math.max(0, (now - segStart) / segDur));
+      const overall = Math.min(stopAt, Math.max(0, (seg + progressed) / total));
+      const t = overall * total;
+      const i = Math.max(0, Math.min(total - 1, Math.floor(t)));
+      const k = Math.max(0, Math.min(1, t - i));
+      const a = pts[i] || pts[0];
+      const b = pts[i + 1] || a;
       const ease = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
-      const x = from.x + (to.x - from.x) * ease;
-      const y = from.y + (to.y - from.y) * ease;
-      dot.style.transform = 'translate(' + (x - 5.5) + 'px,' + (y - 5.5) + 'px)';
-      if (dropped && k > 0.55) dot.style.opacity = String(Math.max(0, 1 - (k - 0.55) / 0.35));
-      if (k < 1) requestAnimationFrame(frame);
-      else {
-        if (dropped) {
-          dot.textContent = '✕';
-          dot.style.cssText += ';width:auto;height:auto;background:none;box-shadow:none;color:#f87171;font-size:13px;font-weight:700';
-        } else {
-          dot.style.transition = 'opacity .35s';
-          dot.style.opacity = '0';
-        }
-        setTimeout(() => dot.remove(), 420);
+      const x = a.x + (b.x - a.x) * ease;
+      const y = a.y + (b.y - a.y) * ease;
+      dot.style.transform = 'translate(' + (x - 7) + 'px,' + (y - 7) + 'px)';
+      if (dropped && overall >= stopAt - 0.001) {
+        dot.classList.add('dead');
+        dot.textContent = '✕';
+        setTimeout(() => dot.remove(), 900);
+        return;
       }
+      if (now - segStart >= segDur) {
+        seg += 1;
+        segStart = now;
+        if (seg >= total * stopAt) { dot.classList.add('gone'); setTimeout(() => dot.remove(), 400); return; }
+      }
+      requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
+    return segDur * total * stopAt;
+  }
+
+  function pulseNodes(route) {
+    route.forEach((id, i) => {
+      const n = document.querySelector('.node[data-dev="' + id + '"]');
+      if (!n) return;
+      const delay = i * 10;
+      setTimeout(() => {
+        n.classList.add(i === route.length - 1 ? 'arrive' : 'through');
+        setTimeout(() => n.classList.remove('arrive', 'through'), 620);
+      }, delay);
+    });
   }
 
   function flashNodes(p) {
@@ -119,21 +253,54 @@
     });
   }
 
+  /* draw the route of the current step permanently, so a beginner can read the path */
+  function paintRoutes(sess, stepIdx) {
+    const g = document.getElementById('cvroute');
+    if (!g) return;
+    const cv = document.getElementById('cv');
+    if (!cv) return;
+    const r = cv.getBoundingClientRect();
+    const pos = {};
+    const lay = layoutFor(sess.topo);
+    sess.topo.devices.forEach((d) => {
+      const p = lay[d.id] || { x: d.x, y: d.y };
+      pos[d.id] = { x: (p.x / 100) * r.width, y: (p.y / 100) * r.height };
+    });
+    let out = '';
+    stepPackets(sess, stepIdx).forEach((p) => {
+      const route = routeFor(sess.topo, p.src, p.dst);
+      if (route.length < 2) return;
+      out += route.slice(0, -1).map((id, i) => {
+        const a = pos[id], b = pos[route[i + 1]];
+        if (!a || !b) return '';
+        return '<line x1="' + a.x.toFixed(1) + '" y1="' + a.y.toFixed(1) + '" x2="' + b.x.toFixed(1) +
+          '" y2="' + b.y.toFixed(1) + '" class="link path" stroke="' + p.protoColor + '" stroke-opacity=".55"/>';
+      }).join('');
+    });
+    g.innerHTML = out;
+  }
+
   function animateStep(sess, stepIdx, cb) {
     clearTimers();
     const geo = drawLinks(sess);
     const pkts = stepPackets(sess, stepIdx);
-    const dur = 780 / S.speed;
+    paintRoutes(sess, stepIdx);
+    if (!pkts.length) { if (cb) cb(); return; }
+    const whole = 980 / S.speed;
     let i = 0;
     function next() {
       if (i >= pkts.length) { if (cb) cb(); return; }
       const p = pkts[i];
-      const from = geo.pos[p.src];
-      const to = geo.pos[p.dst];
-      if (from && to) moveDot(from, to, p.protoColor, dur, p.dropped);
+      const route = routeFor(sess.topo, p.src, p.dst);
+      const hops = Math.max(1, route.length - 1);
+      const segDur = Math.max(170 / S.speed, whole / hops);
+      if (route.length >= 2) {
+        moveAlong(geo, route, p.protoColor, segDur, p.dropped);
+        pulseNodes(route);
+      }
       flashNodes(p);
       i += 1;
-      LS.timers.push(setTimeout(next, dur + 120 / S.speed));
+      LS.timers.push(setTimeout(next, segDur * hops + 160 / S.speed));
     }
     next();
   }
@@ -219,6 +386,24 @@
       '<thead><tr>' +
       '<th>No.</th><th>Time</th><th>Source</th><th>Destination</th><th>Proto</th><th>Info</th><th style="text-align:right">Size</th>' +
       '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  /* a plain-English line of the path the current step's packets take */
+  function routeCrumb(sess, stepIdx) {
+    const pkts = stepPackets(sess, stepIdx);
+    if (!pkts.length) return '';
+    const p = pkts[pkts.length - 1];
+    const route = routeFor(sess.topo, p.src, p.dst);
+    if (route.length < 2) {
+      return '<span class="rc-lab">Route</span><span class="rc-hint">this packet leaves the drawn network</span>';
+    }
+    const names = route.map((id) => {
+      const d = sess.topo.devices.find((x) => x.id === id) || { label: id };
+      return '<b>' + esc(d.label) + '</b>';
+    });
+    return '<span class="rc-lab">Route</span><span class="rc-path">' + names.join('<i>→</i>') + '</span>' +
+      '<span class="rc-hint">' + (route.length - 1) + ' hop' + (route.length === 2 ? '' : 's') +
+      (p.dropped ? ' · this one is dropped' : '') + '</span>';
   }
 
   /* ---------------- explainer ---------------- */
@@ -333,9 +518,11 @@
     h += '<div class="stack">';
 
     // canvas panel
+    const crumb = routeCrumb(sess, stepIdx);
     h += '<div class="panel"><div class="hd"><span>Network</span>' +
       '<span class="chip mono" style="text-transform:none;letter-spacing:0">' + esc(sess.topo.label) + '</span>' +
       '<span class="spacer"></span><button class="btn sm ghost" data-act="view" data-v="lab">Open device lab ↗</button></div>' +
+      (crumb ? '<div class="routecrumb">' + crumb + '</div>' : '') +
       '<div class="canvaswrap">' + canvasHTML(sess, lesson, stepIdx) + '</div>' +
       '<div class="playbar">' +
       '<button class="icobtn" data-act="step" data-i="' + (stepIdx - 1) + '"' + (stepIdx === 0 ? ' disabled' : '') + ' title="Previous step">' + ICON.prev + '</button>' +
@@ -381,6 +568,7 @@
     LS.hl = null;
     requestAnimationFrame(() => {
       drawLinks(sess);
+      paintRoutes(sess, stepIdx);
       fitHex();
       animateStep(sess, stepIdx, () => {
         if (S.playing) {
